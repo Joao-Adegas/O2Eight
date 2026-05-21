@@ -1,42 +1,17 @@
-from fastapi import FastAPI, HTTPException, Header
-from supabase import create_client, Client
-from dotenv import load_dotenv
+from fastapi import FastAPI
+from api.v1.routes import auth
+import sys
 import os
-
-load_dotenv()
 
 app = FastAPI()
 
-supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_KEY")
-)
+app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# 1. Gera a URL de login com Google (redireciona o usuário)
-@app.get("/auth/google")
-def login_google():
-    response = supabase.auth.sign_in_with_oauth({
-        "provider": "google",
-        "options": {
-            "redirect_to": "http://localhost:8000/auth/callback"
-        }
-    })
-    return {"url": response.url}  # frontend redireciona para essa URL
+"""
+Run this command to create __pycache__ in all folders:
 
-
-# 2. Callback — após o login, Supabase redireciona aqui com o token
-@app.get("/auth/callback")
-def auth_callback(code: str):
-    # O Supabase lida com o exchange do code automaticamente via SDK
-    return {"message": "Login feito! Use o token retornado pelo Supabase no frontend."}
-
-
-# 3. Rota protegida — valida o JWT do usuário logado
-@app.get("/me")
-def get_me(authorization: str = Header(...)):
-    token = authorization.replace("Bearer ", "")
-    try:
-        user = supabase.auth.get_user(token)
-        return {"user": user.user}
-    except Exception:
-        raise HTTPException(status_code=401, detail="Token inválido")
+cd backend
+$folders = @("api", "api/core", "api/models", "api/schemas", "api/services", "api/repositories", "api/v1", "api/v1/routes")
+foreach ($f in $folders) { New-Item -Path "$f/__init__.py" -Force }
+"""
