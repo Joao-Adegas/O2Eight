@@ -1,17 +1,49 @@
-# frontend
+# flutter_version
 
-A new Flutter project.
+Conversao do frontend React para Flutter com foco mobile.
 
-## Getting Started
+## Estrutura
 
-This project is a starting point for a Flutter application.
+- lib/main.dart
+- lib/app/app.dart
+- lib/app/routes.dart
+- lib/core/theme/app_theme.dart
+- lib/screens/home/home_screen.dart
+- lib/components
+- lib/models
+- lib/services
 
-A few resources to get you started if this is your first Flutter project:
+## Gerar projeto somente Android e iOS
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Se a pasta estiver sem android e ios, execute na raiz de flutter_version:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. flutter create . --platforms=android,ios
+2. flutter pub get
+
+## Rodar no Android
+
+1. flutter devices
+2. flutter run -d <id_do_dispositivo_android>
+
+## Rodar no iOS (macOS com Xcode)
+
+1. flutter devices
+2. flutter run -d <id_do_simulador_ou_iphone>
+
+## Testes
+
+1. flutter test
+
+## Build
+
+Android APK:
+
+1. flutter build apk --release
+
+Android App Bundle:
+
+1. flutter build appbundle --release
+
+iOS (ipa requer assinatura/configuracao no Xcode):
+
+1. flutter build ios --release
