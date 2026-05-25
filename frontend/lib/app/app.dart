@@ -27,7 +27,7 @@ class _IntegradorAppState extends State<IntegradorApp> {
       darkTheme: AppTheme.darkTheme,
       themeMode: _themeMode,
       routes: buildRoutes(_toggleTheme),
-      initialRoute: AppRoutes.home,
+      initialRoute: AppRoutes.login,
     );
   }
 }
