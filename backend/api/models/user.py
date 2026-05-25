@@ -11,6 +11,3 @@ class User(BaseModel):
     # Profile fields stored in public.users
     name: Optional[str] = None
     created_at: Optional[str] = None
-    daily_cigarette_consumption: Optional[int] = None
-    pack_price: Optional[float] = None
-    preferred_ai_tone: Optional[str] = None

@@ -1,7 +1,10 @@
 from pydantic import BaseModel
 
 
-class HardwarePuff(BaseModel):
-    id: int
+class HardwareSession(BaseModel):
+    uuid: str
     user_id: str
-    happened_at: str
+    quantidade_puxadas: int
+    inicio_da_sessao: str
+    fim_da_sessao: str
+    created_at: str | None = None

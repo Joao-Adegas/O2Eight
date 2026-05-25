@@ -23,7 +23,7 @@ def get_current_user(token: str):
     try:
         profile_response = (
             supabase_admin.table("users")
-            .select("name, created_at, daily_cigarette_consumption, pack_price, preferred_ai_tone")
+            .select("name, created_at")
             .eq("id", auth_user.id)
             .limit(1)
             .execute()
