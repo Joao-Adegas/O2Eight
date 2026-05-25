@@ -6,7 +6,7 @@ from api.schemas.community import (
     CommunityPostCreateRequest,
     CommunityPostResponse,
 )
-from api.services.community_service import create_comment, create_post, list_posts
+from api.services.community_service import create_comment, create_post, like_comment, like_post, list_posts
 
 router = APIRouter()
 
@@ -52,3 +52,25 @@ def post_community_comment(
         raise HTTPException(status_code=401, detail=str(exc))
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Falha ao criar comentario: {str(exc)}")
+
+
+@router.post("/comments/{comment_id}/like", response_model=CommunityCommentResponse)
+def post_like_community_comment(comment_id: str, authorization: str = Header(...)):
+    token = _bearer_to_token(authorization)
+    try:
+        return like_comment(token, comment_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Falha ao curtir comentario: {str(exc)}")
+
+
+@router.post("/posts/{post_id}/like", response_model=CommunityPostResponse)
+def post_like_community_post(post_id: str, authorization: str = Header(...)):
+    token = _bearer_to_token(authorization)
+    try:
+        return like_post(token, post_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Falha ao curtir post: {str(exc)}")

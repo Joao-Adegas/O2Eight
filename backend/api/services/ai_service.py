@@ -5,6 +5,7 @@ import os
 import urllib.error
 import urllib.request
 
+from api.prompts.ai_prompts import CHATBOT_SYSTEM_PROMPT, DAILY_TIP_SYSTEM_PROMPT
 from api.core.supabase import supabase, supabase_admin
 
 _GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -20,12 +21,12 @@ def _extract_user_id_from_token(token: str) -> str:
 
 
 def _call_groq_chat(system_prompt: str, user_prompt: str) -> str:
-    api_key = os.getenv("GROQ_API_KEY")
+    api_key = (os.getenv("GROQ_API_KEY") or "").strip()
     if not api_key:
-        return "Beba agua, respire por 90 segundos e troque de ambiente por 5 minutos. A vontade passa."
+        raise RuntimeError("GROQ_API_KEY nao configurada. Defina a chave para habilitar respostas reais da IA.")
 
     payload = {
-        "model": os.getenv("GROQ_MODEL", _GROQ_MODEL_DEFAULT),
+        "model": (os.getenv("GROQ_MODEL") or _GROQ_MODEL_DEFAULT).strip(),
         "temperature": 0.4,
         "max_tokens": 350,
         "messages": [
@@ -41,6 +42,8 @@ def _call_groq_chat(system_prompt: str, user_prompt: str) -> str:
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "O2Eight-Backend/1.0",
         },
         method="POST",
     )
@@ -50,11 +53,24 @@ def _call_groq_chat(system_prompt: str, user_prompt: str) -> str:
             parsed = json.loads(response.read().decode("utf-8"))
             choices = parsed.get("choices") or []
             if not choices:
-                return "Voce consegue. Foque no proximo passo: respirar, hidratar e sair do gatilho por alguns minutos."
+                raise RuntimeError("Groq retornou resposta sem opcoes de completacao.")
             content = choices[0].get("message", {}).get("content", "").strip()
-            return content or "Voce consegue. Foque no proximo passo: respirar, hidratar e sair do gatilho por alguns minutos."
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
-        return "A vontade e temporaria. Caminhe por 3 minutos e use respiracao lenta para quebrar o gatilho."
+            if not content:
+                raise RuntimeError("Groq retornou conteudo vazio.")
+            return content
+    except urllib.error.HTTPError as exc:
+        error_body = exc.read().decode("utf-8", errors="ignore")
+        if exc.code == 403 and "1010" in error_body:
+            raise RuntimeError(
+                "Groq bloqueou a requisicao (HTTP 403/1010). Verifique rede/VPN/firewall e valide a chave da API."
+            ) from exc
+        raise RuntimeError(f"Groq HTTP {exc.code}: {error_body[:300]}") from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"Falha de conexao com Groq: {exc.reason}") from exc
+    except TimeoutError as exc:
+        raise RuntimeError("Timeout ao consultar Groq.") from exc
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("Resposta invalida da Groq (JSON malformado).") from exc
 
 
 def _recovery_milestones(clean_days: int) -> list[str]:
@@ -136,10 +152,7 @@ def generate_daily_tip(token: str) -> dict:
     recovery = _recovery_milestones(clean_days)
 
     tip = _call_groq_chat(
-        system_prompt=(
-            "Voce e um coach anti tabagismo. Responda em PT-BR com 4-7 linhas, objetivo e pratico. "
-            "Inclua uma estrategia para evitar gatilhos hoje e um habito positivo para acelerar a recuperacao."
-        ),
+        system_prompt=DAILY_TIP_SYSTEM_PROMPT,
         user_prompt=(
             f"Dias limpo: {clean_days}. Motivacoes: {', '.join(form.get('motivations_to_quit', []))}. "
             f"Gatilhos: {', '.join(form.get('triggers', []))}. Horario que mais fuma: {form.get('time_smoke_the_most')}. "
@@ -163,10 +176,7 @@ def generate_chatbot_reply(token: str, message: str) -> str:
     progress = _get_progress(user_id)
 
     return _call_groq_chat(
-        system_prompt=(
-            "Voce e o chatbot da O2Eight para apoio de cessacao do tabagismo. "
-            "Tom acolhedor, sem julgamento, com sugestoes praticas e curtas."
-        ),
+        system_prompt=CHATBOT_SYSTEM_PROMPT,
         user_prompt=(
             f"Mensagem do usuario: {message}. Dias limpo: {progress.get('clean_days', 0)}. "
             f"Gatilhos: {', '.join(form.get('triggers', []))}. "

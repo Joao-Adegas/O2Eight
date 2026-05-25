@@ -49,6 +49,58 @@ def create_comment(token: str, post_uuid: str, comment: str) -> dict:
     return (inserted.data or [{}])[0]
 
 
+def like_post(token: str, post_uuid: str) -> dict:
+    _extract_user_id_from_token(token)
+
+    post_resp = (
+        supabase_admin.table("community_posts")
+        .select("uuid, user_uuid, dias_limpos, comment, created_at, likes")
+        .eq("uuid", post_uuid)
+        .limit(1)
+        .execute()
+    )
+    post_row = (post_resp.data or [None])[0]
+    if not post_row:
+        raise ValueError("Post nao encontrado")
+
+    current_likes = int(post_row.get("likes") or 0)
+    updated_resp = (
+        supabase_admin.table("community_posts")
+        .update({"likes": current_likes + 1})
+        .eq("uuid", post_uuid)
+        .execute()
+    )
+
+    updated_row = (updated_resp.data or [post_row])[0]
+    updated_row["comments"] = []
+    return updated_row
+
+
+def like_comment(token: str, comment_uuid: str) -> dict:
+    _extract_user_id_from_token(token)
+
+    comment_resp = (
+        supabase_admin.table("community_comments")
+        .select("uuid, post_uuid, user_uuid, comment, created_at, likes")
+        .eq("uuid", comment_uuid)
+        .limit(1)
+        .execute()
+    )
+    comment_row = (comment_resp.data or [None])[0]
+    if not comment_row:
+        raise ValueError("Comentario nao encontrado")
+
+    current_likes = int(comment_row.get("likes") or 0)
+    updated_resp = (
+        supabase_admin.table("community_comments")
+        .update({"likes": current_likes + 1})
+        .eq("uuid", comment_uuid)
+        .execute()
+    )
+
+    return (updated_resp.data or [comment_row])[0]
+
+
 def list_posts(token: str, limit: int = 50) -> list[dict]:
     _extract_user_id_from_token(token)
 

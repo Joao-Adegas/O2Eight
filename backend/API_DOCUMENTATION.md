@@ -239,6 +239,18 @@ Body:
 }
 ```
 
+### POST /community/comments/{comment_id}/like
+Incrementa em +1 o numero de curtidas de um comentario.
+
+Retorno:
+- O comentario atualizado (incluindo o campo `likes`).
+
+### POST /community/posts/{post_id}/like
+Incrementa em +1 o numero de curtidas de um post.
+
+Retorno:
+- O post atualizado (incluindo o campo `likes`).
+
 ## 8) Rotas de Chatbot
 
 Prefixo: /chat

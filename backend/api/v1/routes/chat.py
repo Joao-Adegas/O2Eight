@@ -52,6 +52,8 @@ def post_chat_message(
         return [result["user_message"], result["bot_message"]]
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=f"Falha no provedor de IA: {str(exc)}")
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Falha ao enviar mensagem: {str(exc)}")
 
