@@ -17,101 +17,11 @@ class LoginScreen extends StatelessWidget {
       body: Stack(
         children: [
           const _BackgroundShapes(),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 24),
-                  ShaderMask(
-                    shaderCallback: (rect) => const LinearGradient(
-                      colors: [AppTheme.accentStart, AppTheme.accentEnd],
-                    ).createShader(rect),
-                    child: const Text(
-                      'O2Eight',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 44,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Sua jornada para respirar melhor comeca hoje.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: muted,
-                      fontSize: 15,
-                      height: 1.4,
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: cardColor.withValues(alpha: 0.92),
-                      borderRadius: BorderRadius.circular(26),
-                      border: Border.all(
-                        color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.24 : 0.08),
-                          blurRadius: 18,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Text(
-                          'Bem-vindo(a)',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Entre com sua conta para salvar progresso, metas e planos personalizados.',
-                          style: TextStyle(
-                            color: muted,
-                            fontSize: 13,
-                            height: 1.4,
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-                        _GoogleButton(
-                          onPressed: () {
-                            Navigator.pushReplacementNamed(context, AppRoutes.form);
-                          },
-                        ),
-                        const SizedBox(height: 14),
-                        const Text(
-                          'Ao continuar, voce concorda com os Termos de Uso e Politica de Privacidade.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 11),
-                        ),
-                        const SizedBox(height: 14),
-                        GradientButton(
-                          text: 'Explorar sem login',
-                          onPressed: () {
-                            Navigator.pushReplacementNamed(context, AppRoutes.home);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            ),
-          ),
+          Column(
+            children: [
+              Text("Teste")
+            ],
+          )
         ],
       ),
     );
@@ -131,8 +41,8 @@ class _BackgroundShapes extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? const [Color(0xFF08162B), Color(0xFF0B1F3A), Color(0xFF0D2B4A)]
-              : const [Color(0xFFF5F8FC), Color(0xFFE7F0FA), Color(0xFFDCECF7)],
+              ? const [Color(0xFF3CCCB4), Color(0xFF0F5A8F)]
+              : const [Color(0xFF3CCCB4), Color(0xFF0F5A8F)],
         ),
       ),
       child: Stack(
