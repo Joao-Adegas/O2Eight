@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../components/gradient_button.dart';
@@ -311,16 +310,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        SectionCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Economia acumulada', style: TextStyle(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 8),
-              SizedBox(height: 140, child: _savingsChart()),
-            ],
-          ),
-        ),
+        // SectionCard(
+        //   child: Column(
+        //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     children: [
+        //       const Text('Economia acumulada', style: TextStyle(fontWeight: FontWeight.w700)),
+        //       const SizedBox(height: 8),
+        //       SizedBox(height: 140, child: _savingsChart()),
+        //     ],
+        //   ),
+        // ),
         const SizedBox(height: 12),
         SectionCard(
           child: Column(
@@ -437,16 +436,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return ListView(
       padding: const EdgeInsets.only(bottom: 16),
       children: [
-        SectionCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Tragadas por dia', style: TextStyle(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 8),
-              SizedBox(height: 140, child: _puffChart()),
-            ],
-          ),
-        ),
+        // SectionCard(
+        //   child: Column(
+        //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     children: [
+        //       const Text('Tragadas por dia', style: TextStyle(fontWeight: FontWeight.w700)),
+        //       const SizedBox(height: 8),
+        //       SizedBox(height: 140, child: _puffChart()),
+        //     ],
+        //   ),
+        // ),
         const SizedBox(height: 12),
         SectionCard(
           child: Column(
@@ -959,101 +958,101 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _savingsChart() {
-    final list = MockDataService.savingsData;
+  // Widget _savingsChart() {
+  //   final list = MockDataService.savingsData;
 
-    return LineChart(
-      LineChartData(
-        gridData: const FlGridData(show: false),
-        borderData: FlBorderData(show: false),
-        titlesData: FlTitlesData(
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              interval: 1,
-              getTitlesWidget: (value, meta) {
-                final i = value.toInt();
-                if (i < 0 || i >= list.length) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(list[i].label, style: const TextStyle(fontSize: 10)),
-                );
-              },
-            ),
-          ),
-        ),
-        lineBarsData: [
-          LineChartBarData(
-            spots: [
-              for (var i = 0; i < list.length; i++) FlSpot(i.toDouble(), list[i].value),
-            ],
-            isCurved: true,
-            color: AppTheme.accentStart,
-            barWidth: 3,
-            belowBarData: BarAreaData(
-              show: true,
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0x663CCCB4), Color(0x003CCCB4)],
-              ),
-            ),
-            dotData: const FlDotData(show: false),
-          ),
-        ],
-      ),
-    );
-  }
+  //   return LineChart(
+  //     LineChartData(
+  //       gridData: const FlGridData(show: false),
+  //       borderData: FlBorderData(show: false),
+  //       titlesData: FlTitlesData(
+  //         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+  //         rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+  //         leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+  //         bottomTitles: AxisTitles(
+  //           sideTitles: SideTitles(
+  //             showTitles: true,
+  //             interval: 1,
+  //             getTitlesWidget: (value, meta) {
+  //               final i = value.toInt();
+  //               if (i < 0 || i >= list.length) return const SizedBox.shrink();
+  //               return Padding(
+  //                 padding: const EdgeInsets.only(top: 4),
+  //                 child: Text(list[i].label, style: const TextStyle(fontSize: 10)),
+  //               );
+  //             },
+  //           ),
+  //         ),
+  //       ),
+  //       lineBarsData: [
+  //         LineChartBarData(
+  //           spots: [
+  //             for (var i = 0; i < list.length; i++) FlSpot(i.toDouble(), list[i].value),
+  //           ],
+  //           isCurved: true,
+  //           color: AppTheme.accentStart,
+  //           barWidth: 3,
+  //           belowBarData: BarAreaData(
+  //             show: true,
+  //             gradient: const LinearGradient(
+  //               begin: Alignment.topCenter,
+  //               end: Alignment.bottomCenter,
+  //               colors: [Color(0x663CCCB4), Color(0x003CCCB4)],
+  //             ),
+  //           ),
+  //           dotData: const FlDotData(show: false),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  Widget _puffChart() {
-    final list = MockDataService.puffHistory;
+  // Widget _puffChart() {
+  //   final list = MockDataService.puffHistory;
 
-    return BarChart(
-      BarChartData(
-        gridData: const FlGridData(show: false),
-        borderData: FlBorderData(show: false),
-        titlesData: FlTitlesData(
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                final i = value.toInt();
-                if (i < 0 || i >= list.length) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(list[i].label, style: const TextStyle(fontSize: 10)),
-                );
-              },
-            ),
-          ),
-        ),
-        barGroups: [
-          for (var i = 0; i < list.length; i++)
-            BarChartGroupData(
-              x: i,
-              barRods: [
-                BarChartRodData(
-                  toY: list[i].value,
-                  width: 14,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [AppTheme.accentStart, AppTheme.accentEnd],
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
+  //   return BarChart(
+  //     BarChartData(
+  //       gridData: const FlGridData(show: false),
+  //       borderData: FlBorderData(show: false),
+  //       titlesData: FlTitlesData(
+  //         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+  //         rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+  //         leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+  //         bottomTitles: AxisTitles(
+  //           sideTitles: SideTitles(
+  //             showTitles: true,
+  //             getTitlesWidget: (value, meta) {
+  //               final i = value.toInt();
+  //               if (i < 0 || i >= list.length) return const SizedBox.shrink();
+  //               return Padding(
+  //                 padding: const EdgeInsets.only(top: 4),
+  //                 child: Text(list[i].label, style: const TextStyle(fontSize: 10)),
+  //               );
+  //             },
+  //           ),
+  //         ),
+  //       ),
+  //       barGroups: [
+  //         for (var i = 0; i < list.length; i++)
+  //           BarChartGroupData(
+  //             x: i,
+  //             barRods: [
+  //               BarChartRodData(
+  //                 toY: list[i].value,
+  //                 width: 14,
+  //                 borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+  //                 gradient: const LinearGradient(
+  //                   begin: Alignment.topCenter,
+  //                   end: Alignment.bottomCenter,
+  //                   colors: [AppTheme.accentStart, AppTheme.accentEnd],
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }
 
 class _StatTile extends StatelessWidget {

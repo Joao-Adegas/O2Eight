@@ -9,17 +9,78 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? AppTheme.darkMuted : AppTheme.lightMuted;
-    final cardColor = isDark ? AppTheme.darkSurface : AppTheme.lightSurface;
-
     return Scaffold(
       body: Stack(
         children: [
-          const _BackgroundShapes(),
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            color: const Color.fromARGB(255, 255, 255, 255), // Cor sólida
+          ),
+
+          // Logo
           Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text("Teste")
+              ClipPath(
+                clipper: WaveClipper(),
+                child: Container(
+                  width: double.infinity,
+                  height: 520,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF3CCCB4), Color(0xFF0F5A8F)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 70),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Container(
+                          width: 250,
+                          height: 250,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Image.asset('assets/images/logo.png'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              ElevatedButton.icon(
+                onPressed: () {},
+                icon: Icon(Icons.apple,size: 32,),
+                label: Text('Entrar com Apple'),
+                style: ElevatedButton.styleFrom(
+                    minimumSize: Size(450, 50),
+                    backgroundColor:
+                        const Color.fromARGB(255, 0, 0, 0), // cor de fundo
+                    foregroundColor: Colors.white, // cor do texto e ícone
+                    padding: EdgeInsets.all(20)),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () {},
+                icon: Icon(Icons.facebook,size: 32,),
+                label: Text('Entrar com Apple'),
+                style: ElevatedButton.styleFrom(
+                   minimumSize: Size(450, 50),
+                    backgroundColor:
+                        const Color.fromARGB(255, 58, 127, 238),
+                    foregroundColor: Colors.white, // cor do texto e ícone
+                    padding: EdgeInsets.all(20)),
+              )
+              //inputs
+              // login button
             ],
           )
         ],
@@ -28,58 +89,41 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-class _BackgroundShapes extends StatelessWidget {
-  const _BackgroundShapes();
+class WaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    var path = Path();
+    path.lineTo(0, size.height * 0.7);
+
+    // Cria a curva da onda
+    var firstControlPoint = Offset(size.width / 4, size.height * 0.8);
+    var firstEndPoint = Offset(size.width / 2, size.height * 0.75);
+
+    var secondControlPoint = Offset(size.width * 0.75, size.height * 0.7);
+    var secondEndPoint = Offset(size.width, size.height * 0.8);
+
+    path.quadraticBezierTo(
+      firstControlPoint.dx,
+      firstControlPoint.dy,
+      firstEndPoint.dx,
+      firstEndPoint.dy,
+    );
+
+    path.quadraticBezierTo(
+      secondControlPoint.dx,
+      secondControlPoint.dy,
+      secondEndPoint.dx,
+      secondEndPoint.dy,
+    );
+
+    path.lineTo(size.width, 0);
+    path.close();
+
+    return path;
+  }
 
   @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? const [Color(0xFF3CCCB4), Color(0xFF0F5A8F)]
-              : const [Color(0xFF3CCCB4), Color(0xFF0F5A8F)],
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: -120,
-            right: -80,
-            child: _GlowCircle(
-              size: 260,
-              color: AppTheme.accentEnd.withValues(alpha: 0.30),
-            ),
-          ),
-          Positioned(
-            bottom: -100,
-            left: -60,
-            child: _GlowCircle(
-              size: 240,
-              color: AppTheme.accentStart.withValues(alpha: 0.28),
-            ),
-          ),
-          Positioned(
-            top: 220,
-            left: 24,
-            right: 24,
-            child: Container(
-              height: 120,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: AppTheme.accentStart.withValues(alpha: 0.18)),
-                color: AppTheme.accentStart.withValues(alpha: 0.08),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
 class _GlowCircle extends StatelessWidget {
@@ -97,66 +141,6 @@ class _GlowCircle extends StatelessWidget {
         shape: BoxShape.circle,
         gradient: RadialGradient(
           colors: [color, color.withValues(alpha: 0)],
-        ),
-      ),
-    );
-  }
-}
-
-class _GoogleButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _GoogleButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return OutlinedButton(
-      style: OutlinedButton.styleFrom(
-        backgroundColor: isDark ? const Color(0x1AFFFFFF) : Colors.white,
-        foregroundColor: isDark ? AppTheme.darkText : AppTheme.lightText,
-        side: BorderSide(
-          color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-      ),
-      onPressed: onPressed,
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _GoogleMark(),
-          SizedBox(width: 10),
-          Text(
-            'Continuar com Google',
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GoogleMark extends StatelessWidget {
-  const _GoogleMark();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 20,
-      height: 20,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-      ),
-      alignment: Alignment.center,
-      child: const Text(
-        'G',
-        style: TextStyle(
-          color: Color(0xFF4285F4),
-          fontWeight: FontWeight.w900,
-          fontSize: 13,
         ),
       ),
     );
