@@ -27,7 +27,7 @@ class LoginScreen extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
                   height: 520,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       colors: [Color(0xFF3CCCB4), Color(0xFF0F5A8F)],
                       begin: Alignment.topLeft,
@@ -43,7 +43,7 @@ class LoginScreen extends StatelessWidget {
                         Container(
                           width: 250,
                           height: 250,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
                           ),
@@ -58,28 +58,69 @@ class LoginScreen extends StatelessWidget {
 
               ElevatedButton.icon(
                 onPressed: () {},
-                icon: Icon(Icons.apple,size: 32,),
-                label: Text('Entrar com Apple'),
+                icon: const Icon(
+                  Icons.apple,
+                  size: 32,
+                ),
+                label: const Text('Logar com Apple'),
                 style: ElevatedButton.styleFrom(
-                    minimumSize: Size(450, 50),
+                    minimumSize: const Size(400, 50),
                     backgroundColor:
                         const Color.fromARGB(255, 0, 0, 0), // cor de fundo
                     foregroundColor: Colors.white, // cor do texto e ícone
-                    padding: EdgeInsets.all(20)),
+                    padding: const EdgeInsets.all(20)),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: () {},
-                icon: Icon(Icons.facebook,size: 32,),
-                label: Text('Entrar com Apple'),
+                icon: const Icon(
+                  Icons.facebook,
+                  size: 32,
+                ),
+                label: const Text('Entrar com Apple'),
                 style: ElevatedButton.styleFrom(
-                   minimumSize: Size(450, 50),
-                    backgroundColor:
-                        const Color.fromARGB(255, 58, 127, 238),
+                    minimumSize: const Size(400, 50),
+                    backgroundColor: const Color.fromARGB(255, 58, 127, 238),
                     foregroundColor: Colors.white, // cor do texto e ícone
-                    padding: EdgeInsets.all(20)),
-              )
+                    padding: const EdgeInsets.all(20)),
+              ),
+
               //inputs
+              const SizedBox(height: 30),
+
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.7, // 80% da tela
+                child: const TextField(
+                  decoration: InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email, size: 20)),
+                ),
+              ),
+
+
+              const SizedBox(height: 30),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.7, // 80% da tela
+                child: const TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Senha', 
+                    prefixIcon: Icon(Icons.password,size: 20)),
+                ),
+              ),
+
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                onPressed: () {
+
+                },
+                label: const Text('Login'),
+                style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(310, 30),
+                    backgroundColor: const Color.fromARGB(255, 20, 58, 116),
+                    foregroundColor: Colors.white, // cor do texto e ícone
+                    padding: const EdgeInsets.all(20)),
+              ),
+
               // login button
             ],
           )
