@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_version/screens/form/intake_form_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -9,12 +10,10 @@ class LoginScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
-
               // HEADER
               ClipPath(
                 clipper: WaveClipper(),
@@ -37,24 +36,18 @@ class LoginScreen extends StatelessWidget {
 
                   child: Align(
                     alignment: Alignment.center,
-
                     child: Transform.translate(
                       offset: const Offset(0, -40),
-
                       child: Container(
                         width: size.width * 0.28,
                         height: size.width * 0.28,
-
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
                         ),
-
                         alignment: Alignment.center,
-
                         child: Padding(
                           padding: const EdgeInsets.all(16),
-
                           child: Image.asset(
                             'assets/images/logo.png',
                             fit: BoxFit.contain,
@@ -72,40 +65,30 @@ class LoginScreen extends StatelessWidget {
                   constraints: const BoxConstraints(
                     maxWidth: 500,
                   ),
-
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
-
                     child: Column(
                       children: [
-
                         // APPLE
                         SizedBox(
                           width: double.infinity,
-
                           child: ElevatedButton.icon(
                             onPressed: () {},
-
                             icon: const Icon(
                               Icons.apple,
                               size: 28,
                             ),
-
                             label: const Text(
                               'Entrar com Apple',
                             ),
-
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
                               foregroundColor: Colors.white,
-
                               padding: const EdgeInsets.symmetric(
                                 vertical: 18,
                               ),
-
                               shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(50),
                               ),
                             ),
                           ),
@@ -113,54 +96,37 @@ class LoginScreen extends StatelessWidget {
 
                         const SizedBox(height: 16),
 
-                        // FACEBOOK
+                        // GOOGLE
                         SizedBox(
-                          width: double.infinity,
-
-                          child: ElevatedButton.icon(
-                            onPressed: () {},
-
-                            icon: const Icon(
-                              Icons.facebook,
-                              size: 28,
-                            ),
-
-                            label: const Text(
-                              'Entrar com Facebook',
-                            ),
-
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color(0xFF3A7FEE),
-
-                              foregroundColor: Colors.white,
-
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 18,
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFF2F2F2),
+                                foregroundColor: const Color(0xFF000000),
+                                minimumSize: const Size(double.infinity, 60),
                               ),
-
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(14),
+                              onPressed: () {},
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Image.asset(
+                                    'images/googeIcon.png',
+                                    height: 28,
+                                  ),
+                                  // const SizedBox(width: 8),
+                                  const Text('Entrar com Google'),
+                                ],
                               ),
-                            ),
-                          ),
-                        ),
+                            )),
 
                         const SizedBox(height: 32),
 
                         // EMAIL
-                        TextField(
+                        const TextField(
                           decoration: InputDecoration(
                             labelText: 'Email',
-
                             prefixIcon: const Icon(
                               Icons.email,
-                            ),
-
-                            border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(14),
                             ),
                           ),
                         ),
@@ -168,19 +134,12 @@ class LoginScreen extends StatelessWidget {
                         const SizedBox(height: 20),
 
                         // SENHA
-                        TextField(
+                        const TextField(
                           obscureText: true,
-
                           decoration: InputDecoration(
                             labelText: 'Senha',
-
                             prefixIcon: const Icon(
                               Icons.lock,
-                            ),
-
-                            border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(14),
                             ),
                           ),
                         ),
@@ -190,26 +149,26 @@ class LoginScreen extends StatelessWidget {
                         // LOGIN
                         SizedBox(
                           width: double.infinity,
-
                           child: ElevatedButton(
-                            onPressed: () {},
-
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const IntakeFormScreen(), // a tela que vai abrir
+                                ),
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color(0xFF143A74),
-
+                              backgroundColor: const Color(0xFF143A74),
                               foregroundColor: Colors.white,
-
                               padding: const EdgeInsets.symmetric(
                                 vertical: 20,
                               ),
-
                               shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(50),
                               ),
                             ),
-
                             child: const Text(
                               'Login',
                               style: TextStyle(
@@ -241,17 +200,13 @@ class WaveClipper extends CustomClipper<Path> {
 
     path.lineTo(0, size.height * 0.72);
 
-    var firstControlPoint =
-        Offset(size.width / 4, size.height * 0.82);
+    var firstControlPoint = Offset(size.width / 4, size.height * 0.82);
 
-    var firstEndPoint =
-        Offset(size.width / 2, size.height * 0.76);
+    var firstEndPoint = Offset(size.width / 2, size.height * 0.76);
 
-    var secondControlPoint =
-        Offset(size.width * 0.75, size.height * 0.70);
+    var secondControlPoint = Offset(size.width * 0.75, size.height * 0.70);
 
-    var secondEndPoint =
-        Offset(size.width, size.height * 0.80);
+    var secondEndPoint = Offset(size.width, size.height * 0.80);
 
     path.quadraticBezierTo(
       firstControlPoint.dx,

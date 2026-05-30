@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../app/routes.dart';
-import '../../components/gradient_button.dart';
-import '../../components/section_card.dart';
-import '../../core/theme/app_theme.dart';
 
 class IntakeFormScreen extends StatefulWidget {
   const IntakeFormScreen({super.key});
@@ -25,11 +22,11 @@ class _IntakeFormScreenState extends State<IntakeFormScreen> {
 
   late final List<_StepQuestion> _questions = [
     _StepQuestion(
-      title: 'A quanto tempo fuma?',
+      title: 'Há quanto tempo você fuma?',
       options: const [
         '1 dia a 1 semana',
-        '1 semana a 1 mes',
-        '1 mes a 3 meses',
+        '1 semana a 1 mês',
+        '1 mês a 3 meses',
         '3 meses a 1 ano',
       ],
       getter: () => _tempoFuma,
@@ -42,42 +39,42 @@ class _IntakeFormScreenState extends State<IntakeFormScreen> {
       setter: (v) => _cigarrosDia = v,
     ),
     _StepQuestion(
-      title: 'Motivacao para parar de fumar',
+      title: 'Motivação para parar de fumar',
       options: const [
-        'Saude',
+        'Saúde',
         'Dinheiro',
-        'Familia',
+        'Família',
         'Gravidez',
         'Esporte/Performance',
-        'Estetica',
+        'Estética',
         'Ansiedade',
       ],
       getter: () => _motivacao,
       setter: (v) => _motivacao = v,
     ),
     _StepQuestion(
-      title: 'Qual tipo de cigarro voce fuma?',
-      options: const ['Paiero', 'POD', 'VAPE', 'Cigarro', 'Todos'],
+      title: 'Qual tipo de cigarro você fuma?',
+      options: const ['Palito', 'POD', 'VAPE', 'Cigarro', 'Todos'],
       getter: () => _tipoCigarro,
       setter: (v) => _tipoCigarro = v,
     ),
     _StepQuestion(
-      title: 'Possui problemas de saude no historico familiar?',
+      title: 'Possui problemas de saúde no histórico familiar?',
       options: const [
-        'Cancer de pulmao/garganta/boca',
-        'Bronquite cronica',
+        'Câncer de pulmão/garganta/boca',
+        'Bronquite crônica',
         'Enfisema pulmonar',
         'DPOC',
         'Asma',
         'Outros',
-        'Nao possuo',
+        'Não possuo',
       ],
       getter: () => _historicoSaude,
       setter: (v) => _historicoSaude = v,
     ),
     _StepQuestion(
-      title: 'Qual horario em que voce mais fuma?',
-      options: const ['De manha', 'De tarde', 'De noite'],
+      title: 'Qual horário em que você mais fuma?',
+      options: const ['De manhã', 'De tarde', 'De noite'],
       getter: () => _horarioMaisFuma,
       setter: (v) => _horarioMaisFuma = v,
     ),
@@ -86,11 +83,11 @@ class _IntakeFormScreenState extends State<IntakeFormScreen> {
       options: const [
         'Ansiedade',
         'Estresse',
-        'Tedio',
+        'Tédio',
         'Tristeza',
-        'Depois do cafe',
-        'Apos refeicoes',
-        'Alcool',
+        'Depois do café',
+        'Após refeições',
+        'Álcool',
       ],
       getter: () => _gatilhoEmocional,
       setter: (v) => _gatilhoEmocional = v,
@@ -101,15 +98,11 @@ class _IntakeFormScreenState extends State<IntakeFormScreen> {
 
   void _next() {
     if (!_canAdvance) return;
-
     if (_step == _questions.length - 1) {
       Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (_) => false);
       return;
     }
-
-    setState(() {
-      _step += 1;
-    });
+    setState(() => _step += 1);
   }
 
   void _back() {
@@ -117,175 +110,246 @@ class _IntakeFormScreenState extends State<IntakeFormScreen> {
       Navigator.pop(context);
       return;
     }
-    setState(() {
-      _step -= 1;
-    });
+    setState(() => _step -= 1);
   }
+
+  static const _bgColor = Color(0xFF3ABFBF);
+  static const _darkNavy = Color(0xFF1A2A3A);
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? AppTheme.darkMuted : AppTheme.lightMuted;
-    final progress = (_step + 1) / _questions.length;
     final question = _questions[_step];
 
     return Scaffold(
-      body: Stack(
-        children: [
-          const _FormBackground(),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(18, 12, 18, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: _back,
-                        icon: const Icon(Icons.arrow_back_rounded),
-                      ),
-                      Text(
-                        'Perfil inicial',
-                        style: TextStyle(
-                          color: muted,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${_step + 1}/${_questions.length}',
-                        style: TextStyle(
-                          color: muted,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(999),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 9,
-                      backgroundColor: AppTheme.accentEnd.withValues(alpha: 0.2),
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentStart),
+      backgroundColor: _bgColor,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // ── Step Indicator ──────────────────────────────────────────
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 350),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: _StepIndicator(
+                      totalSteps: _questions.length,
+                      currentStep: _step,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: SectionCard(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ShaderMask(
-                            shaderCallback: (rect) => const LinearGradient(
-                              colors: [AppTheme.accentStart, AppTheme.accentEnd],
-                            ).createShader(rect),
-                            child: Text(
-                              question.title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                height: 1.25,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          Text(
-                            'Escolha uma opcao para personalizar seu plano.',
-                            style: TextStyle(
-                              color: muted,
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
-                                children: [
-                                  for (final option in question.options)
-                                    _ChoicePill(
-                                      label: option,
-                                      selected: option == question.getter(),
-                                      onTap: () {
-                                        setState(() {
-                                          question.setter(option);
-                                        });
-                                      },
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  GradientButton(
-                    text: _step == _questions.length - 1 ? 'Finalizar e entrar' : 'Continuar',
-                    onPressed: _canAdvance ? _next : null,
-                  ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(height: 20),
+
+              // ── Card branco ─────────────────────────────────────────────
+
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 370),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    padding: const EdgeInsets.all(22),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min, // <-- encolhe ao conteúdo
+                      children: [
+                        Text(
+                          '${_step + 1}. ${question.title}',
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF111111),
+                            height: 1.3,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+
+                        // Lista sem Expanded — altura natural
+                        ...List.generate(question.options.length, (index) {
+                          final option = question.options[index];
+                          final selected = option == question.getter();
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _OptionTile(
+                              label: option,
+                              selected: selected,
+                              onTap: () =>
+                                  setState(() => question.setter(option)),
+                            ),
+                          );
+                        }),
+
+                        const SizedBox(height: 6),
+
+                        // ── Botões ──────────────────────────────────────
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: _back,
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF555555),
+                                  side: const BorderSide(
+                                      color: Color(0xFFCCCCCC), width: 1.5),
+                                  shape: const StadiumBorder(),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 13),
+                                ),
+                                child: const Text(
+                                  'Voltar',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 60),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: _canAdvance ? _next : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _darkNavy,
+                                  disabledBackgroundColor:
+                                      _darkNavy.withOpacity(0.4),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: const StadiumBorder(),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 5),
+                                ),
+                                child: Text(
+                                  _step == _questions.length - 1
+                                      ? 'Finalizar'
+                                      : 'Próximo',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _ChoicePill extends StatelessWidget {
+// ─── Step Indicator ────────────────────────────────────────────────────────────
+
+class _StepIndicator extends StatelessWidget {
+  final int totalSteps;
+  final int currentStep;
+
+  const _StepIndicator({
+    required this.totalSteps,
+    required this.currentStep,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(totalSteps * 2 - 1, (i) {
+        if (i.isOdd) {
+          final stepIndex = i ~/ 2;
+          final isPassed = stepIndex < currentStep;
+          return Expanded(
+            child: Container(
+              height: 2,
+              // color: isPassed ? Colors.white : Colors.white.withOpacity(0.35),
+              color: Colors.white,
+            ),
+          );
+        }
+
+        final stepIndex = i ~/ 2;
+        final isActive = stepIndex == currentStep;
+        final isPassed = stepIndex < currentStep;
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isPassed ? const Color(0xFF143B74) : Colors.white,
+              // color: Colors.white,
+              // border: Border.all(color: Colors.white, width: 2),
+              border: isPassed
+                  ? Border.all(color: const Color(0xFF143B74))
+                  : Border.all(color: Colors.white)),
+          alignment: Alignment.center,
+          child: isPassed
+              ? const Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: 18,
+                )
+              : Text(
+                  '${stepIndex + 1}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                  ),
+                ),
+        );
+      }),
+    );
+  }
+}
+
+// ─── Option Tile ───────────────────────────────────────────────────────────────
+
+class _OptionTile extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
 
-  const _ChoicePill({
+  const _OptionTile({
     required this.label,
     required this.selected,
     required this.onTap,
   });
 
+  static const _teal = Color(0xFF3ABFBF);
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final selectedColor = const LinearGradient(
-      colors: [AppTheme.accentStart, AppTheme.accentEnd],
-    );
-
     return InkWell(
-      borderRadius: BorderRadius.circular(18),
       onTap: onTap,
-      child: Ink(
+      borderRadius: BorderRadius.circular(50),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
         decoration: BoxDecoration(
-          gradient: selected ? selectedColor : null,
-          color: selected
-              ? null
-              : (isDark ? const Color(0x1AFFFFFF) : const Color(0xFFEAF2F9)),
-          borderRadius: BorderRadius.circular(18),
+          color: selected ? _teal.withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(50),
           border: Border.all(
-            color: selected
-                ? Colors.transparent
-                : (isDark ? AppTheme.darkBorder : AppTheme.lightBorder),
+            color: selected ? _teal : const Color(0xFFE0E0E0),
+            width: 1.5,
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: selected
-                  ? const Color(0xFF0B1F3A)
-                  : (isDark ? AppTheme.darkText : AppTheme.lightText),
-              fontWeight: FontWeight.w700,
-            ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            color: selected ? _teal : const Color(0xFF333333),
           ),
         ),
       ),
@@ -293,67 +357,7 @@ class _ChoicePill extends StatelessWidget {
   }
 }
 
-class _FormBackground extends StatelessWidget {
-  const _FormBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? const [Color(0xFF0A1B33), Color(0xFF0B1F3A)]
-              : const [Color(0xFFF4F8FC), Color(0xFFE7F0FA)],
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: -120,
-            left: -80,
-            child: _Glow(
-              size: 260,
-              color: AppTheme.accentEnd.withValues(alpha: 0.25),
-            ),
-          ),
-          Positioned(
-            bottom: -120,
-            right: -90,
-            child: _Glow(
-              size: 280,
-              color: AppTheme.accentStart.withValues(alpha: 0.24),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Glow extends StatelessWidget {
-  final double size;
-  final Color color;
-
-  const _Glow({required this.size, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [color, color.withValues(alpha: 0)],
-        ),
-      ),
-    );
-  }
-}
+// ─── Step Question model ───────────────────────────────────────────────────────
 
 class _StepQuestion {
   final String title;
