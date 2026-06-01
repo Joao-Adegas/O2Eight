@@ -53,7 +53,7 @@ class UserCard extends StatelessWidget {
               ),
             ],
           ),
-          const FilledImage(fillPercent: 0.7),
+          const FilledImage(fillPercent: 0.3),
         ],
       ),
     );

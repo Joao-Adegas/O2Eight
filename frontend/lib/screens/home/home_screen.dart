@@ -70,8 +70,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
 
-              const SizedBox(height: 80), // ← espaço para compensar o card sobreposto
+              const SizedBox(height: 130), // ← espaço para compensar o card sobreposto
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                    color: Color(0xFF3CCCB4),
+                    
+                ),
+                child: const Column(
+                  children: [
+                    Text("Recuperação Biológica" ,style: TextStyle(
+                      color: Colors.black
+                    ),),
+                    SizedBox(height: 20),
+
+                    // carrousel
+                  ],
+                ),
+              )
             ],
+            
           ),
         ),
       ),
