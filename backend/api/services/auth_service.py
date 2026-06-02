@@ -54,6 +54,47 @@ def register_sso_user(token: str):
     return get_current_user(token)
 
 
+def register_email_user(email: str, password: str, name: str | None = None):
+    sign_up_payload = {
+        "email": email,
+        "password": password,
+    }
+
+    if name:
+        sign_up_payload["options"] = {
+            "data": {
+                "name": name,
+            }
+        }
+
+    response = supabase.auth.sign_up(sign_up_payload)
+
+    if not response or not response.user:
+        raise ValueError("Falha ao criar usuário com email e senha")
+
+    payload = {"id": response.user.id}
+    if name:
+        payload["name"] = name
+
+    supabase_admin.table("users").upsert(payload, on_conflict="id").execute()
+
+    session = response.session
+    return {
+        "message": (
+            "Cadastro realizado. Confirme o email para finalizar o acesso."
+            if session is None
+            else "Cadastro realizado com sucesso."
+        ),
+        "id": response.user.id,
+        "email": response.user.email,
+        "access_token": session.access_token if session else None,
+        "refresh_token": session.refresh_token if session else None,
+        "token_type": session.token_type if session else None,
+        "expires_in": session.expires_in if session else None,
+        "needs_email_confirmation": session is None,
+    }
+
+
 def exchange_callback_code_for_session(code: str):
     response = supabase.auth.exchange_code_for_session({"auth_code": code})
 

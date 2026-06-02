@@ -130,6 +130,22 @@ Troca code OAuth por access_token e refresh_token.
 ### POST /auth/register-sso
 Garante/sincroniza registro em public.users.
 
+### POST /auth/register-email
+Cadastro simples com email e senha usando Supabase Auth.
+
+Body:
+```json
+{
+  "email": "usuario@exemplo.com",
+  "password": "SenhaForte123",
+  "name": "Nome Opcional"
+}
+```
+
+Retorno:
+- Dados basicos do usuario criado.
+- Se `needs_email_confirmation` for `true`, o usuario precisa confirmar email antes de logar.
+
 ### GET /auth/me
 Retorna dados do usuario autenticado (auth + users).
 
