@@ -3,10 +3,18 @@ from api.services.auth_service import (
     get_google_oauth_url,
     get_current_user,
     register_sso_user,
+    login_email_user,
     register_email_user,
     exchange_callback_code_for_session,
 )
-from api.schemas.auth import EmailSignupRequest, EmailSignupResponse, OAuthResponse, UserResponse
+from api.schemas.auth import (
+    EmailLoginRequest,
+    EmailLoginResponse,
+    EmailSignupRequest,
+    EmailSignupResponse,
+    OAuthResponse,
+    UserResponse,
+)
 
 # link test route: http://localhost:8000/auth/google
 
@@ -72,4 +80,18 @@ def register_user_with_email(payload: EmailSignupRequest):
         raise HTTPException(
             status_code=400,
             detail=f"Não foi possível cadastrar usuário com email/senha: {str(exc)}",
+        )
+
+
+@router.post("/login-email", response_model=EmailLoginResponse)
+def login_user_with_email(payload: EmailLoginRequest):
+    try:
+        return login_email_user(
+            email=payload.email,
+            password=payload.password,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Não foi possível realizar login com email/senha: {str(exc)}",
         )

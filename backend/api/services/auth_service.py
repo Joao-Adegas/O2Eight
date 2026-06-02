@@ -54,44 +54,83 @@ def register_sso_user(token: str):
     return get_current_user(token)
 
 
-def register_email_user(email: str, password: str, name: str | None = None):
-    sign_up_payload = {
+def register_email_user(
+    email: str,
+    password: str,
+    name: str | None = None,
+):
+    create_user_payload = {
         "email": email,
         "password": password,
+        "email_confirm": True,
     }
 
     if name:
-        sign_up_payload["options"] = {
-            "data": {
-                "name": name,
-            }
+        create_user_payload["user_metadata"] = {
+            "name": name,
         }
 
-    response = supabase.auth.sign_up(sign_up_payload)
+    created = supabase_admin.auth.admin.create_user(create_user_payload)
 
-    if not response or not response.user:
+    if not created or not created.user:
         raise ValueError("Falha ao criar usuário com email e senha")
 
-    payload = {"id": response.user.id}
+    payload = {"id": created.user.id}
     if name:
         payload["name"] = name
 
     supabase_admin.table("users").upsert(payload, on_conflict="id").execute()
 
-    session = response.session
+    auth_response = supabase.auth.sign_in_with_password(
+        {
+            "email": email,
+            "password": password,
+        }
+    )
+
+    if not auth_response or not auth_response.session or not auth_response.user:
+        raise ValueError("Usuário criado, mas falhou ao autenticar com email e senha")
+
+    session = auth_response.session
     return {
-        "message": (
-            "Cadastro realizado. Confirme o email para finalizar o acesso."
-            if session is None
-            else "Cadastro realizado com sucesso."
-        ),
-        "id": response.user.id,
-        "email": response.user.email,
-        "access_token": session.access_token if session else None,
-        "refresh_token": session.refresh_token if session else None,
-        "token_type": session.token_type if session else None,
-        "expires_in": session.expires_in if session else None,
-        "needs_email_confirmation": session is None,
+        "message": "Cadastro realizado com sucesso.",
+        "id": auth_response.user.id,
+        "email": auth_response.user.email,
+        "access_token": session.access_token,
+        "refresh_token": session.refresh_token,
+        "token_type": session.token_type,
+        "expires_in": session.expires_in,
+    }
+
+
+def login_email_user(email: str, password: str):
+    auth_response = supabase.auth.sign_in_with_password(
+        {
+            "email": email,
+            "password": password,
+        }
+    )
+
+    if not auth_response or not auth_response.session or not auth_response.user:
+        raise ValueError("Email ou senha inválidos")
+
+    user_metadata = getattr(auth_response.user, "user_metadata", None) or {}
+    payload = {"id": auth_response.user.id}
+
+    if user_metadata.get("name"):
+        payload["name"] = user_metadata["name"]
+
+    supabase_admin.table("users").upsert(payload, on_conflict="id").execute()
+
+    session = auth_response.session
+    return {
+        "message": "Login realizado com sucesso.",
+        "id": auth_response.user.id,
+        "email": auth_response.user.email,
+        "access_token": session.access_token,
+        "refresh_token": session.refresh_token,
+        "token_type": session.token_type,
+        "expires_in": session.expires_in,
     }
 
 

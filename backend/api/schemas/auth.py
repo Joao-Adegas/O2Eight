@@ -18,7 +18,21 @@ class EmailSignupResponse(BaseModel):
     refresh_token: str | None = None
     token_type: str | None = None
     expires_in: int | None = None
-    needs_email_confirmation: bool
+
+
+class EmailLoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class EmailLoginResponse(BaseModel):
+    message: str
+    id: str
+    email: str | None = None
+    access_token: str
+    refresh_token: str
+    token_type: str
+    expires_in: int
 
 class UserResponse(BaseModel):
     id: str

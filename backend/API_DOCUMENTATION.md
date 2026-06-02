@@ -133,6 +133,8 @@ Garante/sincroniza registro em public.users.
 ### POST /auth/register-email
 Cadastro simples com email e senha usando Supabase Auth.
 
+Este endpoint cria o usuario ja confirmado e retorna sessao de login.
+
 Body:
 ```json
 {
@@ -144,7 +146,21 @@ Body:
 
 Retorno:
 - Dados basicos do usuario criado.
-- Se `needs_email_confirmation` for `true`, o usuario precisa confirmar email antes de logar.
+- Tokens de sessao (`access_token` e `refresh_token`) para uso imediato.
+
+### POST /auth/login-email
+Login com email e senha.
+
+Body:
+```json
+{
+  "email": "usuario@exemplo.com",
+  "password": "SenhaForte123"
+}
+```
+
+Retorno:
+- Tokens de sessao (`access_token` e `refresh_token`).
 
 ### GET /auth/me
 Retorna dados do usuario autenticado (auth + users).
