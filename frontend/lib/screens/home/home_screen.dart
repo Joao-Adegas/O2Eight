@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_version/models/trigger_data.dart';
 import 'package:flutter_version/screens/home/components/vettical_carrossel.dart';
+import 'package:flutter_version/screens/home/widgets/trigger_carousel.dart';
+import 'package:flutter_version/widgets/nav_bottom_bar.dart';
 import './widgets/filled_image.dart';
 import './widgets/card_user.dart';
-
 
 enum HomeTab { dashboard, patterns, chat, community, insights }
 
@@ -18,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // Define um espaçamento lateral único para reaproveitar em toda a tela
   static const double _horizontalPadding = 24;
+  AppTab _currentTab = AppTab.dashboard;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                       Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 8,
@@ -108,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       VerticalCarousel(
-                        items:  [
+                        items: [
                           "Com 2 semanas sem fumar seus pulmões começam a ter uma respiração normal.",
                           "Com 1 mês sem fumar sua circulação sanguínea melhora.",
                           "Com 3 meses sem fumar sua função pulmonar aumenta em até 30%.",
@@ -119,9 +122,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Principais Gatilhos",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0D4F7C),
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    TriggerCarousel(triggers: mockTriggers),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: NavBottomBar(
+        currentTab: _currentTab,
+        onTabSelected: (tab) {
+          setState(() => _currentTab = tab);
+          // Por enquanto só a Home existe, então as outras abas
+          // podem só trocar o estado sem navegar de verdade ainda.
+          // Quando as telas existirem, troque por Navigator.pushReplacement, etc.
+        },
       ),
     );
   }
