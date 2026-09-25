@@ -1,9 +1,15 @@
+# api/v1/routes/progress.py
 from fastapi import APIRouter, Header, HTTPException
 
-from api.schemas.progress import BiologicalRecoveryResponse, UserProgressResponse
+from api.schemas.progress import (
+    BiologicalRecoveryResponse,
+    ProgressDashboardResponse,
+    UserProgressResponse,
+)
 from api.services.progress_service import (
     check_in_clean_day,
     get_biological_recovery,
+    get_dashboard,
     get_my_progress,
     mark_smoked,
 )
@@ -26,6 +32,17 @@ def get_progress_me(authorization: str = Header(...)):
         raise HTTPException(status_code=401, detail=str(exc))
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Falha ao buscar progresso: {str(exc)}")
+
+
+@router.get("/dashboard", response_model=ProgressDashboardResponse)
+def get_progress_dashboard(authorization: str = Header(...)):
+    token = _bearer_to_token(authorization)
+    try:
+        return get_dashboard(token)
+    except ValueError as exc:
+        raise HTTPException(status_code=401, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Falha ao montar dashboard: {str(exc)}")
 
 
 @router.post("/check-in", response_model=UserProgressResponse)

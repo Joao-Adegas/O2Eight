@@ -2,15 +2,21 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-SmokingTime = Literal["+ de 1 ano", "1 dia a 1 semana", "1 mes a 1 ano"]
+SmokingTime = Literal[
+    "1 dia a 1 semana",
+    "1 semana a 1 mês",
+    "1 mês a 3 meses",
+    "3 meses a 1 ano",
+    "Mais de 1 ano",
+]
 CigarettesPerDay = Literal[
     "Entre 1 e 5",
     "Entre 5 e 10",
-    "+ 10 cigarros",
-    "+ 15 cigarros",
-    "+ 20 cigarros",
+    "Entre 10 e 15",
+    "Entre 15 e 20",
+    "Mais de 20",
 ]
-TimeSmokeMost = Literal["De manha", "De tarde", "De noite"]
+TimeSmokeMost = Literal["De manhã", "De tarde", "De noite"]
 
 
 class FormUpsertRequest(BaseModel):

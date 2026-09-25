@@ -8,9 +8,9 @@ from api.schemas.onboarding import FormUpsertRequest
 _CIGARETTES_PER_DAY_TO_AVERAGE = {
     "Entre 1 e 5": 3,
     "Entre 5 e 10": 8,
-    "+ 10 cigarros": 12,
-    "+ 15 cigarros": 16,
-    "+ 20 cigarros": 21,
+    "Entre 10 e 15": 12,
+    "Entre 15 e 20": 18,
+    "Mais de 20": 25,
 }
 
 

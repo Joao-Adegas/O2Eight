@@ -1,22 +1,77 @@
+// lib/services/auth_service.dart
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
   static const String _baseUrl = 'http://localhost:8000';
 
+  // ───────────────────────── Login ─────────────────────────
+
   Future<void> signInWithGoogle() async {
     await _supabase.auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: kIsWeb
-          ? 'http://localhost:5000' // veja como descobrir a porta abaixo
+          ? 'http://localhost:5000'
           : 'io.supabase.o2eight://login-callback',
       authScreenLaunchMode:
           kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
     );
   }
+
+  Future<AuthResponse> signInWithEmail({
+    required String email,
+    required String password,
+  }) {
+    return _supabase.auth.signInWithPassword(email: email, password: password);
+  }
+
+  Future<AuthResponse> signUpWithEmail({
+    required String name,
+    required String email,
+    required String password,
+  }) {
+    return _supabase.auth.signUp(
+      email: email,
+      password: password,
+      data: {'full_name': name}, // o backend usa isso como nome em /auth/register-sso
+      emailRedirectTo:
+          kIsWeb ? 'http://localhost:5000' : 'io.supabase.o2eight://login-callback',
+    );
+  }
+
+  Future<void> signOut() async {
+    await _supabase.auth.signOut();
+  }
+
+  /// Traduz os erros do Supabase Auth para mensagens em português.
+  static String friendlyError(Object error) {
+    if (error is AuthException) {
+      switch (error.code) {
+        case 'invalid_credentials':
+          return 'E-mail ou senha incorretos.';
+        case 'email_not_confirmed':
+          return 'Confirme seu e-mail antes de entrar. Veja sua caixa de entrada.';
+        case 'user_already_exists':
+        case 'email_exists':
+          return 'Já existe uma conta com esse e-mail.';
+        case 'weak_password':
+          return 'Senha fraca. Use pelo menos 6 caracteres.';
+        case 'over_email_send_rate_limit':
+        case 'over_request_rate_limit':
+          return 'Muitas tentativas. Aguarde alguns minutos e tente de novo.';
+        case 'validation_failed':
+          return 'Verifique o e-mail informado.';
+      }
+      return error.message;
+    }
+    return 'Algo deu errado: $error';
+  }
+
+  // ───────────────────────── Backend ─────────────────────────
 
   String _requireToken() {
     final session = _supabase.auth.currentSession;
@@ -26,7 +81,7 @@ class AuthService {
     return session.accessToken;
   }
 
-  /// Chamar só uma vez, logo após o login bem-sucedido.
+  /// Cria o usuário em public.users (se ainda não existir) e devolve os dados.
   Future<Map<String, dynamic>> registerSsoAndFetchUser() async {
     final token = _requireToken();
 
@@ -42,8 +97,7 @@ class AuthService {
     return fetchCurrentUser();
   }
 
-  /// Chamar sempre que precisar só ler os dados do usuário já sincronizado
-  /// (ex: toda vez que a HomeScreen constrói).
+  /// Só lê os dados do usuário já registrado.
   Future<Map<String, dynamic>> fetchCurrentUser() async {
     final token = _requireToken();
 
@@ -56,17 +110,16 @@ class AuthService {
       throw Exception('Falha ao buscar usuário: ${meResponse.body}');
     }
 
-    return jsonDecode(meResponse.body) as Map<String, dynamic>;
+    return jsonDecode(utf8.decode(meResponse.bodyBytes)) as Map<String, dynamic>;
   }
 
-  Future<void> signOut() async {
-    await _supabase.auth.signOut();
-  }
+  // ───────────────────────── Getters ─────────────────────────
 
   Session? get currentSession => _supabase.auth.currentSession;
 
   User? get currentUser => _supabase.auth.currentUser;
 
+  /// Foto do perfil do Google (o Supabase salva no user_metadata)
   String? get avatarUrl {
     final meta = _supabase.auth.currentUser?.userMetadata;
     return (meta?['avatar_url'] ?? meta?['picture']) as String?;

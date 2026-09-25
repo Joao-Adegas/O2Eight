@@ -20,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   StreamSubscription<AuthState>? _authSub;
   bool _isGoogleLoading = false;
+  bool _isEmailLoading = false;
   bool _obscurePassword = true;
   bool _navigated = false; // evita navegar para a Home duas vezes
 
@@ -28,6 +29,8 @@ class _LoginScreenState extends State<LoginScreen> {
   static const _textDark = Color(0xFF1A2A3A);
   static const _textMuted = Color(0xFF6B7785);
   static const _border = Color(0xFFDDE3EA);
+
+  bool get _isBusy => _isGoogleLoading || _isEmailLoading;
 
   // ───────────────────────── Lógica ─────────────────────────
 
@@ -58,7 +61,30 @@ class _LoginScreenState extends State<LoginScreen> {
   void _goHome() {
     if (_navigated || !mounted) return;
     _navigated = true;
-    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil(AppRoutes.home, (_) => false);
+  }
+
+  Future<void> _onEmailPressed() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      _showMessage('Preencha o e-mail e a senha.');
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+    setState(() => _isEmailLoading = true);
+    try {
+      await _authService.signInWithEmail(email: email, password: password);
+      _goHome();
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage(AuthService.friendlyError(e));
+    } finally {
+      if (mounted) setState(() => _isEmailLoading = false);
+    }
   }
 
   Future<void> _onGooglePressed() async {
@@ -76,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _comingSoon(String feature) {
-    _showMessage('$feature ainda não está disponível. Use o login com Google.');
+    _showMessage('$feature ainda não está disponível.');
   }
 
   void _showMessage(String text) {
@@ -187,6 +213,8 @@ class _LoginScreenState extends State<LoginScreen> {
         TextField(
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.email],
           style: const TextStyle(color: _textDark),
           cursorColor: _navy,
           decoration: _inputDecoration(
@@ -201,6 +229,11 @@ class _LoginScreenState extends State<LoginScreen> {
         TextField(
           controller: _passwordController,
           obscureText: _obscurePassword,
+          textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.password],
+          onSubmitted: (_) {
+            if (!_isBusy) _onEmailPressed();
+          },
           style: const TextStyle(color: _textDark),
           cursorColor: _navy,
           decoration: _inputDecoration(
@@ -236,9 +269,10 @@ class _LoginScreenState extends State<LoginScreen> {
         SizedBox(
           height: 52,
           child: ElevatedButton(
-            onPressed: () => _comingSoon('Login com e-mail'),
+            onPressed: _isBusy ? null : _onEmailPressed,
             style: ElevatedButton.styleFrom(
               backgroundColor: _navy,
+              disabledBackgroundColor: _navy.withValues(alpha: 0.6),
               foregroundColor: Colors.white,
               elevation: 3,
               shadowColor: _navy.withValues(alpha: 0.4),
@@ -246,10 +280,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'Entrar',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
+            child: _isEmailLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text(
+                    'Entrar',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
           ),
         ),
         const SizedBox(height: 24),
@@ -298,7 +341,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 loading: _isGoogleLoading,
-                onPressed: _isGoogleLoading ? null : _onGooglePressed,
+                onPressed: _isBusy ? null : _onGooglePressed,
               ),
             ),
           ],
@@ -314,7 +357,7 @@ class _LoginScreenState extends State<LoginScreen> {
               style: TextStyle(fontSize: 14, color: _textMuted),
             ),
             GestureDetector(
-              onTap: () => _comingSoon('Cadastro com e-mail'),
+              onTap: () => Navigator.of(context).pushNamed(AppRoutes.signup),
               child: const Text(
                 'Cadastre-se',
                 style: TextStyle(

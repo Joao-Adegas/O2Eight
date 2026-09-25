@@ -1,5 +1,8 @@
+# api/services/chat_service.py
 from api.core.supabase import supabase, supabase_admin
-from api.services.ai_service import generate_chatbot_reply
+from api.services.ai_service import CHAT_HISTORY_LIMIT, generate_chatbot_reply
+
+TITLE_MAX_LENGTH = 40
 
 
 def _extract_user_id_from_token(token: str) -> str:
@@ -8,6 +11,28 @@ def _extract_user_id_from_token(token: str) -> str:
     if not auth_user:
         raise ValueError("Token invalido")
     return auth_user.id
+
+
+def _get_own_session(session_id: str, user_id: str) -> dict:
+    session_resp = (
+        supabase_admin.table("chat_sessions_new")
+        .select("uuid, usuario_id, titulo, created_at")
+        .eq("uuid", session_id)
+        .eq("usuario_id", user_id)
+        .limit(1)
+        .execute()
+    )
+    session = (session_resp.data or [None])[0]
+    if not session:
+        raise ValueError("Sessao nao encontrada para este usuario")
+    return session
+
+
+def _title_from(text: str) -> str:
+    clean = " ".join(text.split())
+    if len(clean) <= TITLE_MAX_LENGTH:
+        return clean
+    return clean[:TITLE_MAX_LENGTH].rstrip() + "…"
 
 
 def create_session(token: str, titulo: str | None) -> dict:
@@ -39,30 +64,41 @@ def list_sessions(token: str, limit: int = 50) -> list[dict]:
 
 def send_message(token: str, session_id: str, conteudo: str) -> dict:
     user_id = _extract_user_id_from_token(token)
+    session = _get_own_session(session_id, user_id)
 
-    session_resp = (
-        supabase_admin.table("chat_sessions_new")
-        .select("uuid")
-        .eq("uuid", session_id)
-        .eq("usuario_id", user_id)
-        .limit(1)
+    # Últimas mensagens da conversa, para a IA lembrar do contexto
+    history_resp = (
+        supabase_admin.table("chat_messages_new")
+        .select("remetente, conteudo, enviado_em")
+        .eq("sessao_id", session_id)
+        .order("enviado_em", desc=True)
+        .limit(CHAT_HISTORY_LIMIT)
         .execute()
     )
-    if not (session_resp.data or []):
-        raise ValueError("Sessao nao encontrada para este usuario")
+    history = list(reversed(history_resp.data or []))
+
+    # Gera a resposta ANTES de gravar: se a IA falhar, nada fica salvo pela metade
+    bot_reply = generate_chatbot_reply(token, conteudo, history)
 
     user_insert = (
         supabase_admin.table("chat_messages_new")
         .insert({"sessao_id": session_id, "remetente": "usuario", "conteudo": conteudo})
         .execute()
     )
-
-    bot_reply = generate_chatbot_reply(token, conteudo)
     bot_insert = (
         supabase_admin.table("chat_messages_new")
         .insert({"sessao_id": session_id, "remetente": "bot", "conteudo": bot_reply})
         .execute()
     )
+
+    # Primeira mensagem da conversa vira o título da sessão
+    if not session.get("titulo"):
+        (
+            supabase_admin.table("chat_sessions_new")
+            .update({"titulo": _title_from(conteudo)})
+            .eq("uuid", session_id)
+            .execute()
+        )
 
     return {
         "user_message": (user_insert.data or [{}])[0],
@@ -72,18 +108,7 @@ def send_message(token: str, session_id: str, conteudo: str) -> dict:
 
 def get_conversation(token: str, session_id: str) -> dict:
     user_id = _extract_user_id_from_token(token)
-
-    session_resp = (
-        supabase_admin.table("chat_sessions_new")
-        .select("uuid, usuario_id, titulo, created_at")
-        .eq("uuid", session_id)
-        .eq("usuario_id", user_id)
-        .limit(1)
-        .execute()
-    )
-    session = (session_resp.data or [None])[0]
-    if not session:
-        raise ValueError("Sessao nao encontrada para este usuario")
+    session = _get_own_session(session_id, user_id)
 
     messages_resp = (
         supabase_admin.table("chat_messages_new")
