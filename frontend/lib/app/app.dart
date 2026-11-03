@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import 'routes.dart';
+import '../widgets/connectivity_gate.dart';
 
 class IntegradorApp extends StatefulWidget {
   const IntegradorApp({super.key});
@@ -32,6 +33,9 @@ class _IntegradorAppState extends State<IntegradorApp> {
       themeMode: _themeMode,
       routes: buildRoutes(_toggleTheme),
       initialRoute: AppRoutes.login,
+      // Cobre qualquer tela com o aviso de "sem internet" quando cair a conexão
+      builder: (context, child) =>
+          ConnectivityGate(child: child ?? const SizedBox.shrink()),
     );
   }
 }

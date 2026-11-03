@@ -31,6 +31,8 @@ Future<void> main() async {
   if (session != null && session.isExpired) {
     try {
       await auth.refreshSession();
+    } on AuthRetryableFetchException {
+      // Sem internet: mantém a sessão; ela é renovada quando a conexão voltar
     } catch (_) {
       await auth.signOut();
     }
