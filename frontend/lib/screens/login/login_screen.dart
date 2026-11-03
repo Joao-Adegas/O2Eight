@@ -170,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                child: Image.asset('images/logo.png', fit: BoxFit.contain),
+                child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
               ),
               const SizedBox(height: 14),
               const Text(
@@ -328,7 +328,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: _SocialButton(
                 label: 'Google',
                 icon: Image.asset(
-                  'images/google_logo.png',
+                  'assets/images/googeIcon.png',
                   width: 20,
                   height: 20,
                   errorBuilder: (_, __, ___) => const Text(

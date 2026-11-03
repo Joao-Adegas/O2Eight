@@ -195,7 +195,7 @@ class _BreathingLungsState extends State<BreathingLungs>
               height: discSize * 0.68,
               child: ColorFiltered(
                 colorFilter: ColorFilter.matrix(_saturationMatrix(saturation)),
-                child: Image.asset('images/logo.png', fit: BoxFit.contain),
+                child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
               ),
             ),
           ),
