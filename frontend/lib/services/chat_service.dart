@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_version/core/config/app_config.dart';
 
 class ChatMessage {
   final String? id;
@@ -47,7 +48,7 @@ class ChatSessionInfo {
 }
 
 class ChatService {
-  static const String _baseUrl = 'http://localhost:8000';
+  static String get _baseUrl => AppConfig.apiBaseUrl;
 
   Map<String, String> _headers() {
     final session = Supabase.instance.client.auth.currentSession;

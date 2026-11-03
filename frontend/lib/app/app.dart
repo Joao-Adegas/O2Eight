@@ -1,3 +1,4 @@
+// lib/app/app.dart
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import 'routes.dart';
@@ -10,21 +11,24 @@ class IntegradorApp extends StatefulWidget {
 }
 
 class _IntegradorAppState extends State<IntegradorApp> {
-  ThemeMode _themeMode = ThemeMode.dark;
+  // O app foi desenhado no tema claro. O tema escuro será criado depois;
+  // até lá, o botão de alternar tema não tem efeito visual.
+  ThemeMode _themeMode = ThemeMode.light;
 
   void _toggleTheme() {
     setState(() {
-      _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+      _themeMode =
+          _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Projeto Integrador',
+      title: 'O₂Eight',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      darkTheme: AppTheme.lightTheme,
       themeMode: _themeMode,
       routes: buildRoutes(_toggleTheme),
       initialRoute: AppRoutes.login,

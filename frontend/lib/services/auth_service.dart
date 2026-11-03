@@ -4,10 +4,11 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_version/core/config/app_config.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
-  static const String _baseUrl = 'http://localhost:8000';
+  static String get _baseUrl => AppConfig.apiBaseUrl;
 
   // ───────────────────────── Login ─────────────────────────
 
@@ -111,6 +112,28 @@ class AuthService {
     }
 
     return jsonDecode(utf8.decode(meResponse.bodyBytes)) as Map<String, dynamic>;
+  }
+
+  /// Registra o aceite do termo de consentimento na versão informada.
+  Future<Map<String, dynamic>> acceptConsent(String version) async {
+    final token = _requireToken();
+
+    final response = await http.post(
+      Uri.parse('$_baseUrl/auth/consent'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'version': version}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Falha ao registrar consentimento: ${utf8.decode(response.bodyBytes)}',
+      );
+    }
+
+    return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
   }
 
   // ───────────────────────── Getters ─────────────────────────

@@ -1,15 +1,17 @@
 // lib/screens/home/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_version/app/routes.dart';
-import 'package:flutter_version/models/trigger_data.dart';
-import 'package:flutter_version/screens/home/components/vettical_carrossel.dart';
-import 'package:flutter_version/screens/home/widgets/trigger_carousel.dart';
+import 'package:flutter_version/core/theme/app_theme.dart';
+import 'package:flutter_version/screens/home/widgets/progress_hero.dart';
+import 'package:flutter_version/screens/home/widgets/recovery_timeline.dart';
+import 'package:flutter_version/screens/home/widgets/triggers_section.dart';
+import 'package:flutter_version/screens/sos/sos_screen.dart';
+import 'package:flutter_version/services/achievement_service.dart';
 import 'package:flutter_version/services/auth_service.dart';
 import 'package:flutter_version/services/form_service.dart';
 import 'package:flutter_version/services/progress_service.dart';
+import 'package:flutter_version/widgets/achievement_dialog.dart';
 import 'package:flutter_version/widgets/nav_bottom_bar.dart';
-import 'package:flutter_version/widgets/user_avatar_menu.dart';
-import './widgets/card_user.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -24,19 +26,21 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Espaçamento lateral único para reaproveitar em toda a tela
-  static const double _horizontalPadding = 24;
-
   final _authService = AuthService();
   final _formService = FormService();
   final _progressService = ProgressService();
+  final _achievementService = AchievementService();
 
   String _userName = '';
-  int _cleanDays = 0;
-  double _savedMoney = 0;
+  DateTime _cleanSince = DateTime.now();
+  double _dailyCost = 0;
+  List<TriggerItem> _triggers = [];
+  String? _riskTime;
+  List<String> _motivations = [];
 
   bool _isLoading = true;
   String? _error;
+  bool _achievementChecked = false; // verifica só uma vez por abertura
   AppTab _currentTab = AppTab.dashboard;
 
   @override
@@ -55,10 +59,17 @@ class _HomeScreenState extends State<HomeScreen> {
       // register-sso é idempotente: cria o usuário se não existir e devolve os dados
       final user = await _authService.registerSsoAndFetchUser();
 
+      // Ainda não aceitou o termo em vigor → manda para a tela do termo
+      if (user['terms_up_to_date'] != true) {
+        if (!mounted) return;
+        Navigator.of(context).pushReplacementNamed(AppRoutes.consent);
+        return;
+      }
+
       // Primeiro acesso: ainda não respondeu o formulário → manda para ele
-      final hasForm = await _formService.hasForm();
+      final form = await _formService.getMyForm();
       if (!mounted) return;
-      if (!hasForm) {
+      if (form == null) {
         Navigator.of(context).pushReplacementNamed(AppRoutes.form);
         return;
       }
@@ -68,10 +79,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
       setState(() {
         _userName = (user['name'] as String?) ?? 'Usuário';
-        _cleanDays = (dashboard['clean_days'] as num).toInt();
-        _savedMoney = (dashboard['estimated_saved_money'] as num).toDouble();
+        _cleanSince =
+            DateTime.tryParse((dashboard['clean_since'] as String?) ?? '')
+                    ?.toLocal() ??
+                DateTime.now();
+        _dailyCost = (dashboard['daily_cost'] as num?)?.toDouble() ?? 0;
+
+        // Gatilhos do formulário (sem nível até existir a análise da Etapa 4)
+        _triggers = ((form['triggers'] as List<dynamic>?) ?? const [])
+            .map((t) => TriggerItem(name: t.toString()))
+            .toList();
+        _riskTime = form['time_smoke_the_most'] as String?;
+        _motivations = ((form['motivations_to_quit'] as List<dynamic>?) ?? const [])
+            .map((m) => m.toString())
+            .toList();
+
         _isLoading = false;
       });
+
+      // Depois que a Home aparece, verifica se há conquista nova
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _maybeShowAchievement());
     } catch (e, st) {
       debugPrint('ERRO _loadData: $e');
       debugPrint('$st');
@@ -83,15 +111,73 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String get _progressText =>
-      _cleanDays == 1 ? '1 dia de progresso' : '$_cleanDays dias de progresso';
+  String get _firstName {
+    final parts = _userName.trim().split(RegExp(r'\s+'));
+    return parts.isEmpty ? '' : parts.first;
+  }
+
+  Future<void> _maybeShowAchievement() async {
+    if (_achievementChecked || !mounted) return;
+    _achievementChecked = true;
+
+    final userId = _authService.currentUser?.id;
+    if (userId == null) return;
+
+    final achievement = await _achievementService.pending(
+      userId: userId,
+      cleanSince: _cleanSince,
+    );
+    if (achievement == null || !mounted) return;
+
+    // Marca antes de mostrar, para não repetir se o app for fechado
+    await _achievementService.markShown(
+      userId: userId,
+      cleanSince: _cleanSince,
+      achievement: achievement,
+    );
+    if (!mounted) return;
+
+    final savedMoney =
+        DateTime.now().difference(_cleanSince).inSeconds / 86400 * _dailyCost;
+
+    final action = await showAchievementDialog(
+      context,
+      firstName: _firstName,
+      achievement: achievement,
+      savedMoney: savedMoney,
+    );
+
+    if (action == AchievementAction.share && mounted) {
+      Navigator.of(context).pushNamed(
+        AppRoutes.community,
+        arguments:
+            'Hoje completei ${achievement.title} sem fumar! Cada dia conta.',
+      );
+    }
+  }
+
+  /// Botão "Estou com vontade": abre a respiração guiada.
+  /// Ao voltar, recarrega a Home (o contador pode ter recomeçado).
+  Future<void> _openSos() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SosScreen(motivations: _motivations),
+        fullscreenDialog: true,
+      ),
+    );
+    if (mounted) _loadData();
+  }
+
+  /// Abre o chat com uma pergunta já escrita no campo.
+  void _askAssistant(String prompt) {
+    Navigator.of(context).pushNamed(AppRoutes.chat, arguments: prompt);
+  }
 
   @override
   Widget build(BuildContext context) {
     // Enquanto busca os dados, mostra um loading simples em tela cheia.
     if (_isLoading) {
       return const Scaffold(
-        backgroundColor: Colors.white,
         body: Center(child: CircularProgressIndicator()),
       );
     }
@@ -100,22 +186,24 @@ class _HomeScreenState extends State<HomeScreen> {
     // uma tela simples com opção de tentar de novo.
     if (_error != null) {
       return Scaffold(
-        backgroundColor: Colors.white,
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   _error!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.black87),
+                  style: const TextStyle(color: AppColors.text),
                 ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _loadData,
-                  child: const Text('Tentar novamente'),
+                const SizedBox(height: AppSpacing.lg),
+                SizedBox(
+                  width: 220,
+                  child: ElevatedButton(
+                    onPressed: _loadData,
+                    child: const Text('Tentar novamente'),
+                  ),
                 ),
               ],
             ),
@@ -125,151 +213,70 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _loadData,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    // Container com degradê (ocupa 100% da largura, com padding interno)
-                    Container(
-                      width: double.infinity,
-                      height: 160,
-                      padding: const EdgeInsets.all(_horizontalPadding),
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(15),
-                          bottomRight: Radius.circular(15),
-                        ),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF2ECFCF),
-                            Color(0xFF1A7FA8),
-                            Color(0xFF0D4F7C),
-                          ],
-                        ),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Olá $_userName",
-                                  style: const TextStyle(
-                                      fontSize: 20, color: Colors.white),
-                                ),
-                                Text(
-                                  _progressText,
-                                  style: const TextStyle(
-                                      fontSize: 15, color: Colors.white70),
-                                ),
-                              ],
-                            ),
-                          ),
-                          UserAvatarMenu(
-                            userName: _userName,
-                            authService: _authService,
-                          ),
-                        ],
-                      ),
-                    ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openSos,
+        backgroundColor: AppColors.teal500,
+        foregroundColor: AppColors.navy900,
+        icon: const Icon(Icons.air),
+        label: const Text(
+          'Estou com vontade',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              // Destaque: pulmão, dias sem fumar e dinheiro economizado
+              ProgressHero(
+                userName: _userName,
+                authService: _authService,
+                cleanSince: _cleanSince,
+                dailyCost: _dailyCost,
+              ),
 
-                    // Card sobrepondo — usa o mesmo _horizontalPadding do topo
-                    Positioned(
-                      bottom: -100,
-                      left: _horizontalPadding,
-                      right: _horizontalPadding,
-                      child: UserCard(
-                        daysNotSmoked: _cleanDays.toDouble(),
-                        money: _savedMoney,
-                      ),
+              // Seções abaixo do topo, centralizadas em telas largas
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.screen,
+                      AppSpacing.xl,
+                      AppSpacing.screen,
+                      96, // espaço para o botão "Estou com vontade"
                     ),
-                  ],
-                ),
-                const SizedBox(height: 130),
-
-                // "Recuperação Biológica" — ainda estático; vira IA na próxima etapa
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: _horizontalPadding,
-                  ),
-                  child: Container(
-                    alignment: Alignment.topLeft,
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0x503CCCB4),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Column(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 8,
-                          ),
-                          child: Text(
-                            "Recuperação Biológica",
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                        VerticalCarousel(
-                          items: [
-                            "Com 2 semanas sem fumar seus pulmões começam a ter uma respiração normal.",
-                            "Com 1 mês sem fumar sua circulação sanguínea melhora.",
-                            "Com 3 meses sem fumar sua função pulmonar aumenta em até 30%.",
-                            "Com 1 ano sem fumar o risco de doença cardíaca cai pela metade.",
-                          ],
+                        RecoveryTimeline(cleanSince: _cleanSince),
+                        const SizedBox(height: AppSpacing.xxl),
+                        TriggersSection(
+                          triggers: _triggers,
+                          riskTime: _riskTime,
+                          onAskAssistant: _askAssistant,
                         ),
                       ],
                     ),
                   ),
                 ),
-
-                // "Principais Gatilhos" — ainda com dados de exemplo
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: _horizontalPadding),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Principais Gatilhos",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0D4F7C),
-                        ),
-                      ),
-                      SizedBox(height: 12),
-                      TriggerCarousel(triggers: mockTriggers),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-         bottomNavigationBar: NavBottomBar(
+      bottomNavigationBar: NavBottomBar(
         currentTab: _currentTab,
         onTabSelected: (tab) {
           if (tab == AppTab.chat) {
             Navigator.of(context).pushNamed(AppRoutes.chat);
+            return;
+          }
+          if (tab == AppTab.community) {
+            Navigator.of(context).pushNamed(AppRoutes.community);
             return;
           }
           setState(() => _currentTab = tab);

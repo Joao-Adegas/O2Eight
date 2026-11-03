@@ -1,5 +1,9 @@
 # api/schemas/progress.py
-from pydantic import BaseModel
+from typing import Literal
+
+from pydantic import BaseModel, Field
+
+CravingOutcome = Literal["overcome", "smoked", "abandoned"]
 
 
 class UserProgressResponse(BaseModel):
@@ -23,3 +27,16 @@ class ProgressDashboardResponse(BaseModel):
     daily_cost: float
     estimated_saved_money: float
     has_form: bool
+
+
+class CravingCreateRequest(BaseModel):
+    # overcome = a vontade passou; smoked = fumou; abandoned = saiu sem responder
+    outcome: CravingOutcome
+    started_at: str | None = None
+    duration_seconds: int = Field(default=0, ge=0)
+
+
+class CravingResultResponse(BaseModel):
+    outcome: CravingOutcome
+    overcome_total: int  # quantas vontades o usuário já venceu
+    previous_clean_days: int | None = None  # preenchido quando outcome = smoked

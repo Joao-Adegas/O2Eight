@@ -201,3 +201,53 @@ def get_biological_recovery(token: str) -> dict:
         "clean_days": clean_days,
         "recuperation": _recovery_milestones(clean_days),
     }
+
+
+def record_craving(
+    token: str,
+    outcome: str,
+    started_at: str | None = None,
+    duration_seconds: int = 0,
+    source: str = "app",
+) -> dict:
+    """
+    Registra um momento de vontade.
+    outcome: "overcome" (passou), "smoked" (fumou) ou "abandoned" (saiu sem responder).
+    Se fumou, reinicia o contador de dias sem fumar.
+    """
+    user_id = _extract_user_id_from_token(token)
+
+    previous_clean_days = None
+    if outcome == "smoked":
+        previous_clean_days, _, _ = _compute_clean_days(_get_or_create_progress(user_id))
+
+    (
+        supabase_admin.table("craving_events")
+        .insert(
+            {
+                "user_id": user_id,
+                "started_at": started_at or _iso_now(),
+                "duration_seconds": duration_seconds,
+                "outcome": outcome,
+                "source": source,
+            }
+        )
+        .execute()
+    )
+
+    if outcome == "smoked":
+        mark_smoked_for_user(user_id)
+
+    overcome = (
+        supabase_admin.table("craving_events")
+        .select("uuid", count="exact")
+        .eq("user_id", user_id)
+        .eq("outcome", "overcome")
+        .execute()
+    )
+
+    return {
+        "outcome": outcome,
+        "overcome_total": overcome.count or 0,
+        "previous_clean_days": previous_clean_days,
+    }

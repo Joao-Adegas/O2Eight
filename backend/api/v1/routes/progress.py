@@ -3,6 +3,8 @@ from fastapi import APIRouter, Header, HTTPException
 
 from api.schemas.progress import (
     BiologicalRecoveryResponse,
+    CravingCreateRequest,
+    CravingResultResponse,
     ProgressDashboardResponse,
     UserProgressResponse,
 )
@@ -12,6 +14,7 @@ from api.services.progress_service import (
     get_dashboard,
     get_my_progress,
     mark_smoked,
+    record_craving,
 )
 
 router = APIRouter()
@@ -76,3 +79,19 @@ def progress_biological_recovery(authorization: str = Header(...)):
         raise HTTPException(status_code=401, detail=str(exc))
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Falha ao gerar recuperacao biologica: {str(exc)}")
+
+
+@router.post("/cravings", response_model=CravingResultResponse)
+def progress_record_craving(payload: CravingCreateRequest, authorization: str = Header(...)):
+    token = _bearer_to_token(authorization)
+    try:
+        return record_craving(
+            token,
+            payload.outcome,
+            payload.started_at,
+            payload.duration_seconds,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=401, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Falha ao registrar vontade: {str(exc)}")
