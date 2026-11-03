@@ -100,7 +100,7 @@ class _SplashView extends StatefulWidget {
 }
 
 class _SplashViewState extends State<_SplashView> with TickerProviderStateMixin {
-  static const _breathMs = 1100; // uma inspiração + expiração
+  static const _breathMs = 1600; // uma inspiração + expiração
   static const _fadeMs = 380;
 
   late final AnimationController _breath;
