@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum AppTab { dashboard, patterns, chat, community, insights }
+enum AppTab { dashboard, patterns, chat, community }
 
 class _NavItem {
   final AppTab tab;
@@ -50,12 +50,6 @@ class NavBottomBar extends StatelessWidget {
       icon: Icons.people_outline,
       activeIcon: Icons.people,
       label: "Comunidade",
-    ),
-    _NavItem(
-      tab: AppTab.insights,
-      icon: Icons.insights_outlined,
-      activeIcon: Icons.insights,
-      label: "Insights",
     ),
   ];
 

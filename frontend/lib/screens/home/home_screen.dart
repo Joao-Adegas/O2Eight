@@ -13,6 +13,7 @@ import 'package:flutter_version/services/form_service.dart';
 import 'package:flutter_version/services/progress_service.dart';
 import 'package:flutter_version/widgets/achievement_dialog.dart';
 import 'package:flutter_version/widgets/nav_bottom_bar.dart';
+import 'package:flutter_version/widgets/test_version_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -38,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<TriggerItem> _triggers = [];
   String? _riskTime;
   List<String> _motivations = [];
+  bool _noticeOpen = false; // evita abrir o aviso duas vezes ao recarregar
 
   bool _isLoading = true;
   String? _error;
@@ -99,9 +101,9 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
       });
 
-      // Depois que a Home aparece, verifica se há conquista nova
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => _maybeShowAchievement());
+      // Depois que a Home aparece: aviso de versão de testes e, em seguida,
+      // conquista nova (se houver)
+      WidgetsBinding.instance.addPostFrameCallback((_) => _afterHomeShown());
     } catch (e, st) {
       debugPrint('ERRO _loadData: $e');
       debugPrint('$st');
@@ -117,6 +119,27 @@ class _HomeScreenState extends State<HomeScreen> {
   String get _firstName {
     final parts = _userName.trim().split(RegExp(r'\s+'));
     return parts.isEmpty ? '' : parts.first;
+  }
+
+  /// Aviso de versão de testes (uma vez por usuário neste aparelho).
+  /// Se a pessoa escolher sair, encerra a sessão e volta ao login.
+  Future<void> _afterHomeShown() async {
+    final userId = _authService.currentUser?.id;
+    if (userId == null || !mounted || _noticeOpen) return;
+
+    _noticeOpen = true;
+    final canContinue = await showTestVersionNoticeIfNeeded(context, userId: userId);
+    _noticeOpen = false;
+    if (!mounted) return;
+
+    if (!canContinue) {
+      await _authService.signOut();
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+      return;
+    }
+
+    await _maybeShowAchievement();
   }
 
   Future<void> _maybeShowAchievement() async {
@@ -159,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// Ícone "Insights" da barra inferior e aviso de horário de risco.
+  /// Ícone "Padrões" da barra inferior e aviso de horário de risco.
   void _openInsights() {
     Navigator.of(context)
         .pushNamed(AppRoutes.insights, arguments: _motivations);
@@ -221,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    /// Ícone "Insights" da barra inferior e aviso de horário de risco.
+    /// Ícone "Padrões" da barra inferior e aviso de horário de risco.
     void _openInsights() {
       Navigator.of(context)
           .pushNamed(AppRoutes.insights, arguments: _motivations);
@@ -298,11 +321,11 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.of(context).pushNamed(AppRoutes.community);
             return;
           }
-          if (tab == AppTab.insights || tab == AppTab.patterns) {
+          if (tab == AppTab.patterns) {
             _openInsights();
             return;
           }
-          if (tab == AppTab.insights || tab == AppTab.patterns) {
+          if (tab == AppTab.patterns) {
             _openInsights();
             return;
           }

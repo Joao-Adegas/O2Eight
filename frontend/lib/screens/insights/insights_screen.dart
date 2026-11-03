@@ -397,24 +397,36 @@ class _StatsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final rate = totals['success_rate'] as num?;
     final smoked = _int(totals['smoked']) + _int(totals['device']);
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: AppSpacing.md,
-      crossAxisSpacing: AppSpacing.md,
-      childAspectRatio: 1.9,
+    // Linhas com altura pelo conteúdo: não corta o texto em telas estreitas
+    // nem com fonte do sistema aumentada.
+    Widget row(Widget a, Widget b) => IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: a),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(child: b),
+            ],
+          ),
+        );
+
+    return Column(
       children: [
-        _StatTile(label: 'Momentos de vontade', value: '${_int(totals['moments'])}'),
-        _StatTile(
-          label: 'Vontades vencidas',
-          value: '${_int(totals['overcome'])}',
-          color: _Series.overcome,
+        row(
+          _StatTile(label: 'Momentos de vontade', value: '${_int(totals['moments'])}'),
+          _StatTile(
+            label: 'Vontades vencidas',
+            value: '${_int(totals['overcome'])}',
+            color: _Series.overcome,
+          ),
         ),
-        _StatTile(label: 'Vezes que fumou', value: '$smoked', color: _Series.smoked),
-        _StatTile(
-          label: 'Taxa de sucesso',
-          value: rate == null ? '–' : '${(rate * 100).round()}%',
+        const SizedBox(height: AppSpacing.md),
+        row(
+          _StatTile(label: 'Vezes que fumou', value: '$smoked', color: _Series.smoked),
+          _StatTile(
+            label: 'Taxa de sucesso',
+            value: rate == null ? '–' : '${(rate * 100).round()}%',
+          ),
         ),
       ],
     );
@@ -439,7 +451,7 @@ class _StatTile extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             value,
@@ -453,9 +465,8 @@ class _StatTile extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            maxLines: 2,
+            style: const TextStyle(fontSize: 13, height: 1.3, color: AppColors.textSecondary),
           ),
         ],
       ),
