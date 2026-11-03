@@ -1,15 +1,25 @@
 # api/main.py
+import os
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.v1.routes import auth, onboarding, ai, hardware, progress, community, chat, health
 
+load_dotenv()
+
 app = FastAPI(title="O2Eight API")
+
+# Endereços onde a versão web do app está publicada, separados por vírgula.
+# Ex.: CORS_ORIGINS=https://o2eight-app.web.app
+# O app Android não precisa disso: CORS é uma regra só de navegador.
+_extra_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    # Em desenvolvimento: libera qualquer porta do localhost (Flutter Web).
-    # Quando a versão web do app for publicada, troque por allow_origins=["https://endereco-do-app"].
+    allow_origins=_extra_origins,
+    # Desenvolvimento: libera qualquer porta do localhost (Flutter Web)
     allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
@@ -26,6 +36,6 @@ app.include_router(ai.router, prefix="/ai", tags=["AI"])
 app.include_router(health.router, prefix="/health", tags=["Health"])
 
 
-@app.get("/", include_in_schema=False)
+@app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
 def root():
     return {"name": "O2Eight API", "docs": "/docs", "health": "/health"}
