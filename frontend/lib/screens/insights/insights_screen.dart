@@ -372,6 +372,8 @@ class _NextAlertCard extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: () => onAskStrategy(label),
                 style: OutlinedButton.styleFrom(
+                  // O tema pinta OutlinedButton de branco; aqui o fundo é escuro
+                  backgroundColor: Colors.transparent,
                   foregroundColor: AppColors.onDark,
                   side: const BorderSide(color: AppColors.onDarkSecondary),
                 ),

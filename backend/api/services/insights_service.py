@@ -11,6 +11,7 @@ não em UTC, para que "20h" signifique 20h para a pessoa.
 """
 from __future__ import annotations
 
+import time
 from datetime import datetime, timedelta, timezone
 
 from api.core.supabase import supabase, supabase_admin
@@ -37,8 +38,29 @@ FORM_PERIOD_TO_HOURS = {
 
 # ───────────────────────── Leitura do banco ─────────────────────────
 
+RETRY_ATTEMPTS = 3
+
+
+def _with_retry(fn):
+    """
+    Repete chamadas ao Supabase que falham por erro de rede passageiro.
+    O cliente do Supabase usa uma conexão HTTP/2 compartilhada; quando a Home
+    e a tela de Insights pedem dados ao mesmo tempo, às vezes a conexão
+    devolve "[Errno 11] Resource temporarily unavailable".
+    """
+    for attempt in range(RETRY_ATTEMPTS):
+        try:
+            return fn()
+        except ValueError:
+            raise  # token inválido: não adianta repetir
+        except Exception:
+            if attempt == RETRY_ATTEMPTS - 1:
+                raise
+            time.sleep(0.2 * (attempt + 1))
+
+
 def _extract_user_id_from_token(token: str) -> str:
-    auth_response = supabase.auth.get_user(token)
+    auth_response = _with_retry(lambda: supabase.auth.get_user(token))
     auth_user = auth_response.user
     if not auth_user:
         raise ValueError("Token invalido")
@@ -59,8 +81,8 @@ def _load_moments(user_id: str, since: datetime) -> list[dict]:
     """Junta vontades do app e sessões do dispositivo numa lista só."""
     moments: list[dict] = []
 
-    cravings = (
-        supabase_admin.table("craving_events")
+    cravings = _with_retry(
+        lambda: supabase_admin.table("craving_events")
         .select("started_at, outcome, duration_seconds, source")
         .eq("user_id", user_id)
         .gte("started_at", since.isoformat())
@@ -78,8 +100,8 @@ def _load_moments(user_id: str, since: datetime) -> list[dict]:
                 }
             )
 
-    sessions = (
-        supabase_admin.table("hardware_sessions")
+    sessions = _with_retry(
+        lambda: supabase_admin.table("hardware_sessions")
         .select("inicio_da_sessao, fim_da_sessao, quantidade_puxadas")
         .eq("user_id", user_id)
         .gte("inicio_da_sessao", since.isoformat())
@@ -103,8 +125,8 @@ def _load_moments(user_id: str, since: datetime) -> list[dict]:
 
 
 def _load_form(user_id: str) -> dict:
-    response = (
-        supabase_admin.table("forms")
+    response = _with_retry(
+        lambda: supabase_admin.table("forms")
         .select("triggers, time_smoke_the_most")
         .eq("user_uuid", user_id)
         .limit(1)
