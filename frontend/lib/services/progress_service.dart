@@ -70,4 +70,21 @@ class ProgressService {
     }
     return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
   }
+
+  /// Padrões de vontade e recaída, horários de risco e próximo alerta.
+  /// [days]: período analisado (7, 30 ou 90). O fuso do aparelho vai junto
+  /// para que "20h" no gráfico seja 20h para o usuário.
+  Future<Map<String, dynamic>> getInsights({int days = 30}) async {
+    final tzOffset = DateTime.now().timeZoneOffset.inMinutes;
+    final res = await http.get(
+      Uri.parse('$_baseUrl/progress/insights?days=$days&tz_offset=$tzOffset'),
+      headers: _headers(),
+    );
+    if (res.statusCode != 200) {
+      throw Exception(
+        'Falha ao carregar insights (${res.statusCode}): ${utf8.decode(res.bodyBytes)}',
+      );
+    }
+    return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+  }
 }

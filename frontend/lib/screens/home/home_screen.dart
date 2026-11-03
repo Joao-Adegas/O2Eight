@@ -4,6 +4,7 @@ import 'package:flutter_version/app/routes.dart';
 import 'package:flutter_version/core/theme/app_theme.dart';
 import 'package:flutter_version/screens/home/widgets/progress_hero.dart';
 import 'package:flutter_version/screens/home/widgets/recovery_timeline.dart';
+import 'package:flutter_version/screens/home/widgets/risk_alert_banner.dart';
 import 'package:flutter_version/screens/home/widgets/triggers_section.dart';
 import 'package:flutter_version/screens/sos/sos_screen.dart';
 import 'package:flutter_version/services/achievement_service.dart';
@@ -90,9 +91,10 @@ class _HomeScreenState extends State<HomeScreen> {
             .map((t) => TriggerItem(name: t.toString()))
             .toList();
         _riskTime = form['time_smoke_the_most'] as String?;
-        _motivations = ((form['motivations_to_quit'] as List<dynamic>?) ?? const [])
-            .map((m) => m.toString())
-            .toList();
+        _motivations =
+            ((form['motivations_to_quit'] as List<dynamic>?) ?? const [])
+                .map((m) => m.toString())
+                .toList();
 
         _isLoading = false;
       });
@@ -105,7 +107,8 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint('$st');
       if (!mounted) return;
       setState(() {
-        _error = 'Não foi possível carregar seus dados.\n$e'; // tire o $e quando estiver tudo ok
+        _error =
+            'Não foi possível carregar seus dados.\n$e'; // tire o $e quando estiver tudo ok
         _isLoading = false;
       });
     }
@@ -154,6 +157,12 @@ class _HomeScreenState extends State<HomeScreen> {
             'Hoje completei ${achievement.title} sem fumar! Cada dia conta.',
       );
     }
+  }
+
+  /// Ícone "Insights" da barra inferior e aviso de horário de risco.
+  void _openInsights() {
+    Navigator.of(context)
+        .pushNamed(AppRoutes.insights, arguments: _motivations);
   }
 
   /// Botão "Estou com vontade": abre a respiração guiada.
@@ -212,6 +221,12 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    /// Ícone "Insights" da barra inferior e aviso de horário de risco.
+    void _openInsights() {
+      Navigator.of(context)
+          .pushNamed(AppRoutes.insights, arguments: _motivations);
+    }
+
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openSos,
@@ -252,6 +267,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        RiskAlertBanner(
+                          key: ValueKey(_cleanSince),
+                          onOpenInsights: _openInsights,
+                        ),
                         RecoveryTimeline(cleanSince: _cleanSince),
                         const SizedBox(height: AppSpacing.xxl),
                         TriggersSection(
@@ -277,6 +296,14 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           if (tab == AppTab.community) {
             Navigator.of(context).pushNamed(AppRoutes.community);
+            return;
+          }
+          if (tab == AppTab.insights || tab == AppTab.patterns) {
+            _openInsights();
+            return;
+          }
+          if (tab == AppTab.insights || tab == AppTab.patterns) {
+            _openInsights();
             return;
           }
           setState(() => _currentTab = tab);

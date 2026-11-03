@@ -1,5 +1,5 @@
 # api/v1/routes/progress.py
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, Query
 
 from api.schemas.progress import (
     BiologicalRecoveryResponse,
@@ -16,6 +16,8 @@ from api.services.progress_service import (
     mark_smoked,
     record_craving,
 )
+
+from api.services.insights_service import get_insights
 
 router = APIRouter()
 
@@ -95,3 +97,18 @@ def progress_record_craving(payload: CravingCreateRequest, authorization: str = 
         raise HTTPException(status_code=401, detail=str(exc))
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Falha ao registrar vontade: {str(exc)}")
+
+
+@router.get("/insights")
+def progress_insights(
+    authorization: str = Header(...),
+    days: int = Query(30, ge=1, le=365, description="Período analisado, em dias"),
+    tz_offset: int = Query(-180, ge=-840, le=840, description="Fuso do aparelho em minutos (Brasília = -180)"),
+):
+    token = _bearer_to_token(authorization)
+    try:
+        return get_insights(token, days, tz_offset)
+    except ValueError as exc:
+        raise HTTPException(status_code=401, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Falha ao gerar insights: {str(exc)}")
