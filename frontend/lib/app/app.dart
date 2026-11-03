@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import 'routes.dart';
+import '../widgets/app_open_splash.dart';
 import '../widgets/connectivity_gate.dart';
 
 class IntegradorApp extends StatefulWidget {
@@ -33,9 +34,11 @@ class _IntegradorAppState extends State<IntegradorApp> {
       themeMode: _themeMode,
       routes: buildRoutes(_toggleTheme),
       initialRoute: AppRoutes.login,
-      // Cobre qualquer tela com o aviso de "sem internet" quando cair a conexão
-      builder: (context, child) =>
-          ConnectivityGate(child: child ?? const SizedBox.shrink()),
+      // Por cima de todas as telas: animação de abertura (pulmão respirando)
+      // e aviso de "sem internet" quando cair a conexão
+      builder: (context, child) => AppOpenSplash(
+        child: ConnectivityGate(child: child ?? const SizedBox.shrink()),
+      ),
     );
   }
 }
